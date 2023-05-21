@@ -1,20 +1,25 @@
 import bittensor
 
+DEFAULT_UID = 0  # default to the first miner for now
+
 
 class ValidatorPrompter:
-    def __init__(self, wallet_name, hotkey_name, netuid=1):
+    def __init__(self, hotkey: bittensor.Keypair, netuid=1):
         self.metagraph: bittensor.metagraph = bittensor.metagraph(netuid)
-        self.wallet = bittensor.wallet(name=wallet_name, hotkey=hotkey_name)
-        self._set_dendrite(0)  # default axon
+        self.hotkey = hotkey
+        # Create a defualt dendrite instance we can use if uid is not specified
+        self.default_dendrite = self._get_dendrite(DEFAULT_UID)
 
-    def _set_dendrite(self, uid):
+    def _get_dendrite(self, uid):
         axon = self.metagraph.axons[uid]
-        self.dendrite = bittensor.text_prompting(keypair=self.wallet.hotkey, axon=axon)
+        return bittensor.text_prompting(keypair=self.hotkey, axon=axon)
 
     def query_network(self, messages, uid=None):
         roles = [el["role"] for el in messages]
         messages = [el["content"] for el in messages]
-        if uid is not None:
-            self._set_dendrite(uid)
-        out = self.dendrite(roles=roles, messages=messages)
+        dendrite = (
+            self._get_dendrite(uid) if uid is not DEFAULT_UID else self.default_dendrite
+        )
+
+        out = dendrite(roles=roles, messages=messages)
         return out

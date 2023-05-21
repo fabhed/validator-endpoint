@@ -1,11 +1,16 @@
 import asyncio
 from typing import Annotated, Dict, List, Union
 
+import bittensor
+from decouple import config
 from fastapi import Body, FastAPI, Header
 
 from validator_prompter import ValidatorPrompter
 
-validator_prompter = ValidatorPrompter(wallet_name="catan4", hotkey_name="2")
+mnemomic = config("HOTKEY_MNEMONIC")
+hotkey = bittensor.Keypair.create_from_mnemonic(mnemomic)
+validator_prompter = ValidatorPrompter(hotkey)
+
 app = FastAPI()
 
 

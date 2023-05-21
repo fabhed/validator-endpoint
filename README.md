@@ -68,6 +68,18 @@ nano .env # edit environment variables
 
 ```
 
+## Run
+
+```
+python -m vendpoint start
+```
+
+## Dev server
+
+```
+uvicorn vendpoint.server:app --reload
+```
+
 ## Timeline
 
 This is a work in progress, and we aim to have a the first version done by May 25th.

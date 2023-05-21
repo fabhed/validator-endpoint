@@ -15,6 +15,12 @@ def _version_callback(value: bool) -> None:
         raise typer.Exit()
 
 
+def _start_callback():
+    import uvicorn
+
+    uvicorn.run("vendpoint.server:app", host="0.0.0.0", port=8000)
+
+
 @app.callback()
 def main(
     version: Optional[bool] = typer.Option(
@@ -24,6 +30,12 @@ def main(
         help="Show the application's version and exit.",
         callback=_version_callback,
         is_eager=True,
-    )
+    ),
 ) -> None:
     return
+
+
+@app.command()
+def start():
+    print("Starting the api server...")
+    _start_callback()

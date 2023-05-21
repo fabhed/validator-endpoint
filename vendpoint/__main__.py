@@ -1,6 +1,6 @@
 """vendpoint entry point"""
 
-from vendpoint import cli, __app_name__
+from vendpoint import __app_name__, cli
 
 
 def main():

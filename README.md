@@ -59,10 +59,12 @@ Response:
 
 ## Setup
 
-```
-git clone the repo
-env vs config.yml ?
-
+```bash
+git clone https://github.com/ViktorThink/validator-endpoint.git
+cd validator-endpoint
+python -m pip install -r requirements.txt
+cp .env.example .env
+nano .env # edit environment variables
 
 ```
 

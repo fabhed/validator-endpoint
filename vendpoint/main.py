@@ -5,7 +5,7 @@ import bittensor
 from decouple import config
 from fastapi import Body, FastAPI, Header
 
-from validator_prompter import ValidatorPrompter
+from vendpoint.validator_prompter import ValidatorPrompter
 
 mnemomic = config("HOTKEY_MNEMONIC")
 hotkey = bittensor.Keypair.create_from_mnemonic(mnemomic)

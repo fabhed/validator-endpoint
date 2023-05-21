@@ -30,6 +30,12 @@ class ApiKey:
         self.created_at = db_output[8]
         self.updated_at = db_output[9]
 
+    def has_unlimited_credits(self):
+        return self.credits == -1
+
+    def has_lifetime(self):
+        return self.valid_until != -1
+
     # Define print as a table
     def __str__(self):
         return tabulate(
@@ -97,7 +103,7 @@ def insert(
         return ApiKey(get(api_key))
 
 
-def get(api_key: str):
+def get(api_key: str) -> ApiKey:
     connection = create_or_get_connection()
     cur = connection.cursor()
     cur.execute(
@@ -106,7 +112,8 @@ def get(api_key: str):
         """,
         (api_key,),
     )
-    return cur.fetchone()
+    res = cur.fetchone()
+    return None if res is None else ApiKey(res)
 
 
 def get_all():

@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "vendpoint"
+name = "btvep"
 version = "0.1.0"
 description = "Validator endpoint for bittensor"
 authors = ["Your Name <you@example.com>"]
@@ -7,7 +7,7 @@ license = "MIT"
 readme = "README.md"
 
 [tool.poetry.scripts]
-vendpoint = "vendpoint.__main__:main"
+btvep = "btvep.__main__:main"
 
 [tool.poetry.dependencies]
 python = ">=3.10,<3.11"

@@ -6,9 +6,9 @@ import bittensor
 from decouple import config
 from fastapi import Body, Depends, FastAPI, Header, HTTPException, status
 
-import vendpoint
-import vendpoint.db.api_keys as api_keys
-from vendpoint.validator_prompter import ValidatorPrompter
+import btvep
+import btvep.db.api_keys as api_keys
+from btvep.validator_prompter import ValidatorPrompter
 
 mnemomic = config("HOTKEY_MNEMONIC")
 hotkey = bittensor.Keypair.create_from_mnemonic(mnemomic)
@@ -18,7 +18,7 @@ from fastapi.security import OAuth2PasswordBearer
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
-vendpoint.db.tables.create_all()
+btvep.db.tables.create_all()
 
 
 def missing_api_key():

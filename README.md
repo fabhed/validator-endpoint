@@ -71,7 +71,7 @@ nano .env # edit environment variables
 ## Run
 
 ```
-python -m vendpoint start
+python -m btvep start
 ```
 
 ## Key management Commands
@@ -84,7 +84,7 @@ python -m vendpoint start
 ## Dev server
 
 ```
-uvicorn vendpoint.server:app --reload
+uvicorn btvep.server:app --reload
 ```
 
 ## Timeline

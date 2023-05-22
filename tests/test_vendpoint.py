@@ -1,7 +1,7 @@
 from typer.testing import CliRunner
 
-from vendpoint import __app_name__, __version__
-from vendpoint import cli
+from btvep import __app_name__, __version__
+from btvep import cli
 
 runner = CliRunner()
 

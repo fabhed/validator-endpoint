@@ -5,7 +5,7 @@ from typing import Optional
 import typer
 from typing_extensions import Annotated
 
-from vendpoint import __app_name__, __version__, db
+from btvep import __app_name__, __version__, db
 
 from . import key
 
@@ -29,7 +29,7 @@ def main(
         is_eager=True,
     ),
 ) -> None:
-    """vendpoint entry point"""
+    """btvep entry point"""
     db.tables.create_all()
     return
 
@@ -48,7 +48,7 @@ def start(
     """
     import uvicorn
 
-    uvicorn.run("vendpoint.server:app", host="0.0.0.0", port=port)
+    uvicorn.run("btvep.server:app", host="0.0.0.0", port=port)
 
 
 app.add_typer(key.app, name="key", help="Manage api keys.")

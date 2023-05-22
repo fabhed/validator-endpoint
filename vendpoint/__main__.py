@@ -1,6 +1,6 @@
-"""vendpoint entry point"""
+"""btvep entry point"""
 
-from vendpoint import __app_name__, cli
+from btvep import __app_name__, cli
 
 
 def main():

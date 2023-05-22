@@ -1,7 +1,7 @@
 from typing import Annotated
 import typer
 
-from vendpoint.db import api_keys
+from btvep.db import api_keys
 
 
 def convert_to_int_if_numeric(value: str) -> int | str:

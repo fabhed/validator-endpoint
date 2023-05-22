@@ -43,7 +43,7 @@ def set(
     Set a config value.
     """
 
-    # handle mnemomic
+    # handle mnemonic
     # This will currently overwrite the entire .env file.
     # TODO: Add a better way to save config values. Maybe a json file or in db.
     if key == "mnemonic":
@@ -69,7 +69,7 @@ def get(
     Prints a config value.
     """
 
-    # handle mnemomic
+    # handle mnemonic
     if key == "mnemonic":
         # read to .env relative to this file
         with open(os.path.join(os.path.dirname(__file__), "../.env"), "r") as f:

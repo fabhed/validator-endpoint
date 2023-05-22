@@ -10,8 +10,8 @@ import btvep
 import btvep.db.api_keys as api_keys
 from btvep.validator_prompter import ValidatorPrompter
 
-mnemomic = config("HOTKEY_MNEMONIC")
-hotkey = bittensor.Keypair.create_from_mnemonic(mnemomic)
+mnemonic = config("HOTKEY_MNEMONIC")
+hotkey = bittensor.Keypair.create_from_mnemonic(mnemonic)
 validator_prompter = ValidatorPrompter(hotkey)
 
 from fastapi.security import OAuth2PasswordBearer

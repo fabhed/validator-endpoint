@@ -188,7 +188,7 @@ def update(
                 query,
             ),
         )
-        return ApiKey(get(query))
+        return get(query)
 
 
 # Delete function

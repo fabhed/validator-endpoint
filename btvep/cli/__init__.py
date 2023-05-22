@@ -8,6 +8,7 @@ from typing_extensions import Annotated
 from btvep import __app_name__, __version__, db
 
 from . import key
+from . import config
 
 app = typer.Typer(help="Validator Endpoint CLI")
 
@@ -51,4 +52,5 @@ def start(
     uvicorn.run("btvep.server:app", host="0.0.0.0", port=port)
 
 
-app.add_typer(key.app, name="key", help="Manage api keys.")
+app.add_typer(key.app, name="key")
+app.add_typer(config.app, name="config")

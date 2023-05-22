@@ -10,7 +10,7 @@ def convert_to_int_if_numeric(value: str) -> int | str:
     return value
 
 
-app = typer.Typer()
+app = typer.Typer(help="Manage api keys.")
 
 
 @app.callback(no_args_is_help=True)

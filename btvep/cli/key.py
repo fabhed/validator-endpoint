@@ -93,7 +93,7 @@ def edit(
     query: Annotated[
         str,
         typer.Argument(
-            help="The api key to delete. Can be specified by either the key or its numerical id.",
+            help="The api key to edit. Can be specified by either the key or its numerical id.",
         ),
     ],
     # Values as options

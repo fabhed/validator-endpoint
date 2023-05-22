@@ -1,21 +1,64 @@
+from typing import Annotated
 import typer
 
 from vendpoint.db import api_keys
 
+
+def convert_to_int_if_numeric(value: str) -> int | str:
+    if value.isnumeric():
+        return int(value)
+    return value
+
+
 app = typer.Typer()
 
 
-@app.callback(invoke_without_command=True)
+@app.callback(no_args_is_help=True)
 def main():
     pass
 
 
 @app.command()
-def create():
+def create(
+    name: Annotated[
+        str,
+        typer.Option(
+            "--name",
+            "-n",
+            help="The name of the api key.",
+        ),
+    ] = None,
+    valid_until: Annotated[
+        int,
+        typer.Option(
+            "--valid-until",
+            "-v",
+            help="The unix timestamp when the api key expires. Defaults to -1 which means that the key never expires.",
+        ),
+    ] = -1,
+    credits: Annotated[
+        int,
+        typer.Option(
+            "--credits",
+            "-c",
+            help="The number of credits the api key has. -1 means unlimited.",
+        ),
+    ] = -1,
+    enabled: Annotated[
+        bool,
+        typer.Option(
+            "--enabled",
+            "-e",
+            help="Whether the api key is enabled. Disabled keys cannot make requests.",
+        ),
+    ] = True,
+):
     """
     Create a new api key.
     """
-    api_key = api_keys.insert()
+    api_key = api_keys.insert(
+        name=name, valid_until=valid_until, credits=credits, enabled=enabled
+    )
     print(api_key)
 
 
@@ -30,19 +73,29 @@ def list():
 
 @app.command()
 def delete(
-    api_key: str,
+    query: Annotated[
+        str,
+        typer.Argument(
+            help="The api key to delete. Can be specified by either the key or its numerical id.",
+        ),
+    ]
 ):
     """
-    Delete an api key.
+    Deletes an api key.
     """
-    print(f"Deleting key {api_key}")
-    api_keys.delete(api_key)
+    print(f"Deleting key {query}")
+    api_keys.delete(query)
 
 
 # edit
 @app.command()
 def edit(
-    api_key: str,
+    query: Annotated[
+        str,
+        typer.Argument(
+            help="The api key to delete. Can be specified by either the key or its numerical id.",
+        ),
+    ],
     # Values as options
     api_key_hint: str = typer.Option(None, "--api-key-hint", "-k"),
     name: str = typer.Option(None, "--name", "-n"),
@@ -55,7 +108,7 @@ def edit(
     Edit an api key.
     """
     api_key = api_keys.update(
-        api_key,
+        convert_to_int_if_numeric(query),
         api_key_hint,
         name,
         request_count,

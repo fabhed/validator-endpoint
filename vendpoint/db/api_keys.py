@@ -16,6 +16,10 @@ column_order = (
 )
 
 
+def get_column_to_query(query):
+    return "id" if isinstance(query, int) else "api_key"
+
+
 class ApiKey:
     # Init method taking db output
     def __init__(self, db_output):
@@ -88,6 +92,7 @@ def insert(
     valid_until: int = -1,
     credits: int = -1,
     enabled: bool = True,
+    name: str = None,
 ):
     connection = create_or_get_connection()
     cur = connection.cursor()
@@ -95,22 +100,33 @@ def insert(
     with connection:
         cur.execute(
             """
-            INSERT INTO api_keys (api_key, request_count, valid_until, credits, enabled)
-            VALUES (?, ?, ?, ?, ?)
+            INSERT INTO api_keys (api_key, api_key_hint, name, request_count, valid_until, credits, enabled)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
             """,
-            (api_key, request_count, valid_until, credits, enabled),
+            (
+                api_key,
+                "..." + api_key[-4:],
+                name,
+                request_count,
+                valid_until,
+                credits,
+                enabled,
+            ),
         )
         return get(api_key)
 
 
-def get(api_key: str) -> ApiKey:
+def get(query: str | int) -> ApiKey:
+    column_to_query = get_column_to_query(query)
     connection = create_or_get_connection()
     cur = connection.cursor()
     cur.execute(
         """
-        SELECT * FROM api_keys WHERE api_key=?
-        """,
-        (api_key,),
+        SELECT * FROM api_keys WHERE {} = ?
+        """.format(
+            column_to_query
+        ),
+        (query,),
     )
     res = cur.fetchone()
     return None if res is None else ApiKey(res)
@@ -129,7 +145,7 @@ def get_all():
 
 # Update function
 def update(
-    api_key: str,
+    query: str | int,
     api_key_hint: str = None,
     name: str = None,
     request_count: int = None,
@@ -137,6 +153,14 @@ def update(
     credits: int = None,
     enabled: bool = None,
 ):
+    """
+    Update an api key with the given query.
+    Args:
+        query: The query to find the api key to update. Can be either the api key or the id.
+
+    """
+    column_to_query = get_column_to_query(query)
+
     connection = create_or_get_connection()
     cur = connection.cursor()
     with connection:
@@ -150,8 +174,10 @@ def update(
                 credits = COALESCE(?, credits),
                 enabled = COALESCE(?, enabled),
                 updated_at = CURRENT_TIMESTAMP
-            WHERE api_key = ?
-            """,
+            WHERE {} = ?
+            """.format(
+                column_to_query
+            ),
             (
                 api_key_hint,
                 name,
@@ -159,21 +185,24 @@ def update(
                 valid_until,
                 credits,
                 enabled,
-                api_key,
+                query,
             ),
         )
-        return ApiKey(get(api_key))
+        return ApiKey(get(query))
 
 
 # Delete function
-def delete(api_key: str):
+def delete(api_key: str | int):
+    column_to_query = get_column_to_query(api_key)
     connection = create_or_get_connection()
     cur = connection.cursor()
     with connection:
         cur.execute(
             """
             DELETE FROM api_keys
-            WHERE api_key = ?
-            """,
+            WHERE {} = ?
+            """.format(
+                column_to_query
+            ),
             (api_key,),
         )

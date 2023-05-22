@@ -9,7 +9,7 @@ from vendpoint import __app_name__, __version__, db
 
 from . import key
 
-app = typer.Typer()
+app = typer.Typer(help="Validator Endpoint CLI")
 
 
 def _version_callback(value: bool) -> None:
@@ -18,7 +18,7 @@ def _version_callback(value: bool) -> None:
         raise typer.Exit()
 
 
-@app.callback(invoke_without_command=True)
+@app.callback(no_args_is_help=True)
 def main(
     version: Optional[bool] = typer.Option(
         None,
@@ -35,11 +35,20 @@ def main(
 
 
 @app.command()
-def start():
-    print("Starting the api server...")
+def start(
+    port: Annotated[
+        int,
+        typer.Option(
+            help="The port to listen on.",
+        ),
+    ] = 8000,
+):
+    """
+    Start the api server.
+    """
     import uvicorn
 
-    uvicorn.run("vendpoint.server:app", host="0.0.0.0", port=8000)
+    uvicorn.run("vendpoint.server:app", host="0.0.0.0", port=port)
 
 
 app.add_typer(key.app, name="key", help="Manage api keys.")

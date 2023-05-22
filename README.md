@@ -1,12 +1,31 @@
-# validator-endpoint
+<div align="center">
 
-This is an open source repository for Bittensor validator owners, for easily setting
-up a REST service with api endpoints that allows for sharing access to querying the Bittensor
-network through their validator.
+# **Bittensor Validator Endpoint**
 
-NOTE: This project and readme is a WIP.
+### Query the Bittensor network via an API <!-- omit in toc -->
 
-## Get started
+[Documentation](./docs)
+
+</div>
+
+The Bittensor validator endpoint lets validators easily host a API for other services to querying the Bittensor network through their validator.
+
+## Features
+
+- Host an API server with API-key authentication
+- [`btvep`](./docs/cli.md) CLI to manage keys and configuration
+- API key lifetimes - set expiry dates
+- API key credits - limit amount of requests with credits
+- Drop-in replacement for [OpenAI's Chat API](https://platform.openai.com/docs/api-reference/chat)
+- Filter requests via [OpenAI's Moderation Endpoint](https://platform.openai.com/docs/guides/moderation/overview)
+
+## Planned features
+
+- Request logs
+- A Web Dashboard for statistics and key management (CLI Alternative)
+- Configurable rate limits - Restrict requests per minute per api_key
+
+## Getting started
 
 ```bash
 # Install with pip
@@ -19,7 +38,7 @@ btvep key create
 btvep start --port 8000
 ```
 
-Try out the api key you just created (Replace $API_KEY)
+Make a request with the key you just created (Replace $API_KEY)
 
 ```bash
 curl http://localhost:8000/chat \

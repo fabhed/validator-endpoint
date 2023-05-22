@@ -22,12 +22,12 @@ btvep start --port 8000
 Try out the api key you just created (Replace $API_KEY)
 
 ```bash
-curl https://localhost:8000/chat \
+curl http://localhost:8000/chat \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer $API_KEY" \
   -H "Endpoint-Version: 2023-05-19" \
   -d '{
-     "messages": [{"role": "user", "content": "Say this is a test!"}],
+     "messages": [{"role": "user", "content": "Say this is a test!"}]
    }'
 ```
 
@@ -40,12 +40,12 @@ curl https://localhost:8000/chat \
 ### Query the bittensor network
 
 ```bash
-curl https://localhost:8000/chat \
+curl http://localhost:8000/chat \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer $API_KEY" \
   -H "Endpoint-Version: 2023-05-19" \
   -d '{
-     "messages": [{"role": "user", "content": "Say this is a test!"}],
+     "messages": [{"role": "user", "content": "Say this is a test!"}]
    }'
 ```
 
@@ -63,7 +63,7 @@ Response:
 ### Query a specific neuron via its uid on the network
 
 ```bash
-curl https://localhost:8000/chat \
+curl http://localhost:8000/chat \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer $API_KEY" \
   -H "Endpoint-Version: 2023-05-19" \

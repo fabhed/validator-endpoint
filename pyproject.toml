@@ -7,7 +7,7 @@ license = "MIT"
 readme = "README.md"
 
 [tool.poetry.scripts]
-btvep = "btvep.__main__:main"
+btvep = "btvep.cli:app"
 
 [tool.poetry.dependencies]
 python = ">=3.10,<3.11"

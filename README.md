@@ -4,6 +4,8 @@ This is an open source repository for Bittensor validator owners, for easily set
 up a REST service with api endpoints that allows for sharing access to querying the Bittensor
 network through their validator.
 
+NOTE: This project and readme is a WIP.
+
 ## Examples
 
 ### Query the bittensor network

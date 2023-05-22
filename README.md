@@ -111,6 +111,12 @@ btvep --help
 uvicorn btvep.server:app --reload
 ```
 
+### grpcio dependency (from bittensor) arm fix
+
+```
+python3 -m pip install --no-binary :all: grpcio --ignore-installed
+```
+
 ## Timeline
 
-This is a work in progress, and we aim to have a the first version done by May 25th.
+We aim to have a the first version done by May 25th.

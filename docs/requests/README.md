@@ -4,7 +4,7 @@ How to make requests to the Validator Endpoint.
 
 ## Basic Request with Python
 
-```
+```python
 import requests
 import json
 
@@ -52,7 +52,8 @@ Response:
 
 Have a ChatGPT like back and forth conversation with the network:
 
-```import requests
+```python
+import requests
 import json
 
 url = 'http://<IP_ADDRESS>:<PORT>/chat'

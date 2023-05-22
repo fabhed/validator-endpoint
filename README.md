@@ -6,12 +6,41 @@ network through their validator.
 
 NOTE: This project and readme is a WIP.
 
-## Examples
+## Get started
+
+```bash
+# Install with pip
+python3 -m pip install https://github.com/ViktorThink/validator-endpoint/raw/main/dist/btvep-0.1.0-py3-none-any.whl
+# Set your hotkey mnemomic
+btvep config set mnemomic <HOTKEY_MNEMOMIC>
+# Create an api key
+btvep key create
+# Start the server
+btvep start --port 8000
+```
+
+Try out the api key you just created (Replace $API_KEY)
+
+```bash
+curl https://localhost:8000/chat \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $API_KEY" \
+  -H "Endpoint-Version: 2023-05-19" \
+  -d '{
+     "messages": [{"role": "user", "content": "Say this is a test!"}],
+   }'
+```
+
+## Requirements
+
+- Python 3.10+
+
+## API Usage Examples
 
 ### Query the bittensor network
 
 ```bash
-curl https://localhost:8080/chat \
+curl https://localhost:8000/chat \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer $API_KEY" \
   -H "Endpoint-Version: 2023-05-19" \
@@ -34,7 +63,7 @@ Response:
 ### Query a specific neuron via its uid on the network
 
 ```bash
-curl https://localhost:8080/chat \
+curl https://localhost:8000/chat \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer $API_KEY" \
   -H "Endpoint-Version: 2023-05-19" \
@@ -55,37 +84,30 @@ Response:
 }
 ```
 
-## Requirements
+## Dev requirements
 
-- Python 3.10+
+- Poetry: https://python-poetry.org/docs/
 
-## Setup
+## Dev setup
 
 ```bash
+# Clone the repo
 git clone https://github.com/ViktorThink/validator-endpoint.git
 cd validator-endpoint
-python -m pip install -r requirements.txt
-cp .env.example .env
-nano .env # edit environment variables
 
-```
+# Install depedencies
+poetry install
 
-## Run
+# Launch the shell enviornment
+poetry shell
 
-```
-python -m btvep start
-```
+# Run your editor
+code .
 
-## Key management Commands
+# You can now run the cli
+btvep --help
 
-```bash
-
-
-```
-
-## Dev server
-
-```
+# Run the server with auto reloading
 uvicorn btvep.server:app --reload
 ```
 

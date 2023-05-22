@@ -100,7 +100,7 @@ def insert(
             """,
             (api_key, request_count, valid_until, credits, enabled),
         )
-        return ApiKey(get(api_key))
+        return get(api_key)
 
 
 def get(api_key: str) -> ApiKey:

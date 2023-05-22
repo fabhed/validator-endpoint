@@ -8,7 +8,7 @@
 
 </div>
 
-Allow validators to easily host an API for other services to prompt the Bittensor network through their validator.
+Allow validators to easily host an API for other services to prompt the Bittensor network.
 
 ## Features
 

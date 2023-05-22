@@ -2,13 +2,13 @@
 
 # **Bittensor Validator Endpoint**
 
-### Query the Bittensor network via an API <!-- omit in toc -->
+### Prompt the Bittensor network via an API <!-- omit in toc -->
 
 [Documentation](./docs)
 
 </div>
 
-The Bittensor validator endpoint lets validators easily host a API for other services to querying the Bittensor network through their validator.
+Allow validators to easily host an API for other services to prompt the Bittensor network through their validator.
 
 ## Features
 
@@ -56,7 +56,7 @@ curl http://localhost:8000/chat \
 
 ## API Usage Examples
 
-### Query the bittensor network
+### Prompt the bittensor network
 
 ```bash
 curl http://localhost:8000/chat \
@@ -79,7 +79,7 @@ Response:
 }
 ```
 
-### Query a specific neuron via its uid on the network
+### Prompt a specific neuron via its uid on the network
 
 ```bash
 curl http://localhost:8000/chat \

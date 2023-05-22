@@ -20,6 +20,7 @@ python_decouple = "^3.8"
 
 [tool.poetry.dev-dependencies]
 pytest = "^7.3.1"
+typer-cli = "^0.0.13"
 
 
 [build-system]

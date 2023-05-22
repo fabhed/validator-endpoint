@@ -111,6 +111,12 @@ btvep --help
 uvicorn btvep.server:app --reload
 ```
 
+### Generate docs
+
+```bash
+typer btvep.cli utils docs --output docs/cli.md
+```
+
 ### grpcio dependency (from bittensor) arm fix
 
 ```

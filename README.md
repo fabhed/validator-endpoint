@@ -74,6 +74,13 @@ nano .env # edit environment variables
 python -m vendpoint start
 ```
 
+## Key management Commands
+
+```bash
+
+
+```
+
 ## Dev server
 
 ```

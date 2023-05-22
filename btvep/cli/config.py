@@ -9,11 +9,11 @@ app = typer.Typer(
     help=f"""
     Update and read config values. Config values available:\n
     \n
-    \t- mnemonic\n\n
+    \t- hotkey_mnemonic\n\n
 
     Example usage:\n
-    - btvep config set mnemonic "my mnemonic"\n
-    - btvep config get mnemonic
+    - btvep config set hotkey_mnemonic "my mnemonic"\n
+    - btvep config get hotkey_mnemonic
 
 """
 )
@@ -46,10 +46,10 @@ def set(
     # handle mnemonic
     # This will currently overwrite the entire .env file.
     # TODO: Add a better way to save config values. Maybe a json file or in db.
-    if key == "mnemonic":
+    if key == "hotkey_mnemonic":
         # write to .env relative to this file
         with open(os.path.join(os.path.dirname(__file__), "../.env"), "w") as f:
-            f.write(f"MNEMONIC={value}")
+            f.write(f"HOTKEY_MNEMONIC={value}")
         return
     else:
         # Raise error with typer
@@ -70,7 +70,7 @@ def get(
     """
 
     # handle mnemonic
-    if key == "mnemonic":
+    if key == "hotkey_mnemonic":
         # read to .env relative to this file
         with open(os.path.join(os.path.dirname(__file__), "../.env"), "r") as f:
             print(f.read().split("=")[1])

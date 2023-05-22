@@ -12,7 +12,7 @@ NOTE: This project and readme is a WIP.
 # Install with pip
 python3 -m pip install https://github.com/ViktorThink/validator-endpoint/raw/main/dist/btvep-0.1.0-py3-none-any.whl
 # Set your hotkey mnemonic
-btvep config set mnemonic <HOTKEY_mnemonic>
+btvep config set hotkey_mnemonic <HOTKEY_mnemonic>
 # Create an api key
 btvep key create
 # Start the server

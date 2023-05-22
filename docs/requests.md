@@ -22,8 +22,12 @@ response = requests.post(url, headers=headers, data=json.dumps(data))
 reply = response.json()["message"]["content"]
 print("Reply:", reply)
 ```
+
 Output:
+
+```
 Reply: As an AI language model, I can tell you that the answer to 1+1 is 2.
+```
 
 ## Basic Request with Using Curl
 
@@ -56,23 +60,21 @@ Have a ChatGPT like back and forth conversation with the network:
 import requests
 import json
 
-url = 'http://<IP_ADDRESS>:<PORT>/chat'
+url = "http://<IP_ADDRESS>:<PORT>/chat"
 headers = {
-    'Content-Type': 'application/json',
-    'Authorization': 'Bearer <API_KEY>',
-    'Endpoint-Version': '2023-05-19'
+    "Content-Type": "application/json",
+    "Authorization": "Bearer <API_KEY>",
+    "Endpoint-Version": "2023-05-19",
 }
-data = {
-    'messages': []
-}
+data = {"messages": []}
 
 print("You are talking to the Bittensor network. What do you want to ask?\n")
 
 for i in range(5):
     message = input("Message: ")
-    data["messages"].append({"role":"user","content":message})
+    data["messages"].append({"role": "user", "content": message})
     response = requests.post(url, headers=headers, data=json.dumps(data))
-    
+
     data["messages"].append(response.json()["message"])
     reply = response.json()["message"]["content"]
     print("Reply:", reply, "\n")

@@ -114,7 +114,7 @@ uvicorn btvep.server:app --reload
 ### Generate docs
 
 ```bash
-typer btvep.cli utils docs --output docs/cli.md
+typer btvep.cli utils docs --output docs/cli.md --name btvep
 ```
 
 ### grpcio dependency (from bittensor) arm fix
@@ -122,7 +122,3 @@ typer btvep.cli utils docs --output docs/cli.md
 ```
 python3 -m pip install --no-binary :all: grpcio --ignore-installed
 ```
-
-## Timeline
-
-We aim to have a the first version done by May 25th.

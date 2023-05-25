@@ -10,7 +10,7 @@ from btvep import __app_name__, __version__, db
 from . import key
 from . import config
 
-app = typer.Typer(help="Bitensor Validator Endpoint CLI")
+app = typer.Typer(help="Bitensor Validator Endpoint CLI", rich_markup_mode="markdown")
 
 
 def _version_callback(value: bool) -> None:

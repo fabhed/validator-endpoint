@@ -1,4 +1,7 @@
+from datetime import datetime
 from typing import Annotated
+import dateparser
+import rich
 import typer
 
 from btvep.db import api_keys
@@ -97,19 +100,61 @@ def edit(
     api_key_hint: str = typer.Option(None, "--api_key_hint", "-k"),
     name: str = typer.Option(None, "--name", "-n"),
     request_count: int = typer.Option(None, "--request_count", "-r"),
-    valid_until: int = typer.Option(None, "--valid_until", "-u"),
+    valid_until: str = typer.Option(
+        None,
+        "--valid_until",
+        "-u",
+        help="""
+        When the api key expires.
+        Set to false to disable expiration.
+        You can specify the expiry in natural language (e.g. 'in 1 month', 'in 10 days', 'December 2025', 'next year', 'tomorrow', 'next week', etc.)
+        or as a date (e.g. '2025-01-01').
+        or as an epoch timestamp (e.g. '1735603200')
+        Parsing of relative dates will be relative to the current date but ignore the current time of day.
+        """,
+    ),
     credits: int = typer.Option(None, "--credits", "-c"),
     enabled: bool = typer.Option(None, "--enabled", "-e"),
 ):
     """
     Edit an api key.
     """
+
+    if valid_until is None:
+        parsed_valid_until = None
+    if valid_until.lower() == "false" or valid_until.lower() == "-1":
+        valid_until = -1
+    else:
+        # https://dateparser.readthedocs.io/en/latest/
+        parsed_valid_until = dateparser.parse(
+            valid_until,
+            settings={
+                "PREFER_DATES_FROM": "future",
+                "DATE_ORDER": "YMD",
+                "PREFER_DAY_OF_MONTH": "first",
+                # Option is not yet released, but saw it in a github issue https://github.com/scrapinghub/dateparser/pull/1146
+                # "PREFER_MONTH_OF_YEAR": "first",
+                # Relative base for current date but 0 hours, 0 minutes, 0 seconds
+                "RELATIVE_BASE": datetime.now().replace(
+                    hour=0, minute=0, second=0, microsecond=0
+                ),
+            },
+        )
+        if parsed_valid_until is None:
+            raise typer.BadParameter(
+                f"Could not parse date '{valid_until}'. Try another format."
+            )
+        # Rich formatt the date
+        rich.print(
+            f"""Parsed date as [bold]{parsed_valid_until.date()} {parsed_valid_until.time()}[/bold]"""
+        )
+
     api_keys.update(
         query,
         api_key_hint,
         name,
         request_count,
-        valid_until,
+        parsed_valid_until,
         credits,
         enabled,
     )

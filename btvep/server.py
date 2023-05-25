@@ -79,6 +79,11 @@ def chat(
 
     response = validator_prompter.query_network(messages=messages, uid=uid)
     if response.is_success:
+        btvep.db.request.Request.create(
+            prompt=messages,
+            response=response.completion,
+            api_key=authorization.split(" ")[1],
+        )
         return {
             "message": {"role": "assistant", "content": response.completion},
             "responder_hotkey": response.dest_hotkey,

@@ -83,7 +83,12 @@ def insert(
 
 def get(query: str | int) -> ApiKey:
     column_to_query = get_column_to_query(query)
-    return ApiKey.get(column_to_query == query)
+    # Return none if does not exist
+    try:
+        return ApiKey.get(column_to_query == query)
+    except ApiKey.DoesNotExist as e:
+        print(e)
+        return None
 
 
 def get_all():
@@ -100,7 +105,6 @@ def update(
     enabled: bool = None,
 ):
     api_key = get(query)
-    print("api_key", api_key)
     if api_key_hint is not None:
         api_key.api_key_hint = api_key_hint
     if name is not None:

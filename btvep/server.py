@@ -59,9 +59,14 @@ def api_key_auth(api_key: str = Depends(oauth2_scheme)):
     elif not api_key.has_unlimited_credits() and api_key.credits - cost < 0:
         invalid_api_key("Not enough credits")
 
-    # Subtract cost if not enough credits
-    if not api_key.has_unlimited_credits():
-        api_keys.update(api_key.api_key, credits=api_key.credits - cost)
+    # Subtract cost if not unlimited
+    credits = None if api_key.has_unlimited_credits() else api_key.credits - cost
+    # Increment request count and potentially credits
+    api_keys.update(
+        api_key.api_key,
+        request_count=api_key.request_count + 1,
+        credits=credits,
+    )
 
 
 app = FastAPI()

@@ -4,7 +4,7 @@ from collections import OrderedDict
 
 from tabulate import tabulate
 
-from .utils import db
+from .utils import BaseModel
 
 column_order = (
     "id",
@@ -26,11 +26,6 @@ KEY_LENGTH = 48
 
 #################### Reimplment this file with peewee ####################
 from peewee import BooleanField, DateTimeField, IntegerField, Model, TextField
-
-
-class BaseModel(Model):
-    class Meta:
-        database = db
 
 
 class ApiKey(BaseModel):
@@ -65,10 +60,6 @@ class ApiKey(BaseModel):
             api_keys,
             headers="keys",
         )
-
-
-def create_table():
-    db.create_tables([ApiKey])
 
 
 def insert(

@@ -1,5 +1,6 @@
-from .api_keys import create_table
+from .utils import db
+from .api_keys import ApiKey
 
 
 def create_all():
-    create_table()
+    db.create_tables([ApiKey])

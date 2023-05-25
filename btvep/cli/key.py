@@ -3,13 +3,6 @@ import typer
 
 from btvep.db import api_keys
 
-
-def convert_to_int_if_numeric(value: str) -> int | str:
-    if value.isnumeric():
-        return int(value)
-    return value
-
-
 app = typer.Typer(help="Manage api keys.")
 
 
@@ -83,8 +76,12 @@ def delete(
     """
     Deletes an api key.
     """
-    api_keys.delete(convert_to_int_if_numeric(query))
-    print(f"Deleted key {query}")
+    count = api_keys.delete(query)
+
+    if count == 0:
+        print(f"Key {query} not found")
+    else:
+        print(f"Deleted key {query}")
 
 
 # edit
@@ -107,8 +104,8 @@ def edit(
     """
     Edit an api key.
     """
-    api_key = api_keys.update(
-        convert_to_int_if_numeric(query),
+    api_keys.update(
+        query,
         api_key_hint,
         name,
         request_count,
@@ -116,5 +113,4 @@ def edit(
         credits,
         enabled,
     )
-
-    print(api_key)
+    print(api_keys.get(query))

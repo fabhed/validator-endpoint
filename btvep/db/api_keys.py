@@ -1,4 +1,4 @@
-import datetime
+from datetime import datetime
 import json
 from collections import OrderedDict
 
@@ -36,8 +36,8 @@ class ApiKey(BaseModel):
     valid_until = DateTimeField(default=-1)
     credits = IntegerField(default=-1)
     enabled = BooleanField(default=True)
-    created_at = DateTimeField(default=datetime.datetime.now)
-    updated_at = DateTimeField(default=datetime.datetime.now)
+    created_at = DateTimeField(default=datetime.now)
+    updated_at = DateTimeField(default=datetime.now)
 
     def has_unlimited_credits(self):
         return self.credits == -1
@@ -82,10 +82,8 @@ def insert(
 
 
 def get(query: str | int) -> ApiKey:
-    column_to_query = get_column_to_query(query)
-    # Return none if does not exist
     try:
-        return ApiKey.get(column_to_query == query)
+        return ApiKey.get((ApiKey.id == query) | (ApiKey.api_key == query))
     except ApiKey.DoesNotExist as e:
         print(e)
         return None
@@ -104,32 +102,26 @@ def update(
     credits: int = None,
     enabled: bool = None,
 ):
-    api_key = get(query)
-    if api_key_hint is not None:
-        api_key.api_key_hint = api_key_hint
-    if name is not None:
-        api_key.name = name
-    if request_count is not None:
-        api_key.request_count = request_count
-    if valid_until is not None:
-        api_key.valid_until = valid_until
-    if credits is not None:
-        api_key.credits = credits
-    if enabled is not None:
-        api_key.enabled = enabled
-    api_key.save()
-    return api_key
+    # Use a dict to filter out None values
+    update_dict = {
+        "api_key_hint": api_key_hint,
+        "name": name,
+        "request_count": request_count,
+        "valid_until": valid_until,
+        "credits": credits,
+        "enabled": enabled,
+        "updated_at": datetime.now(),
+    }
+    update_dict = {k: v for k, v in update_dict.items() if v is not None}
+    q = ApiKey.update(update_dict).where(
+        (ApiKey.id == query) | (ApiKey.api_key == query)
+    )
+    return q.execute()
 
 
-def delete(api_key: str | int):
-    api_key = get(api_key)
-    return api_key.delete_instance()
-
-
-def get_column_to_query(query: str | int):
-    if isinstance(query, str):
-        return ApiKey.api_key
-    elif isinstance(query, int):
-        return ApiKey.id
-    else:
-        raise ValueError("Query must be either a string or an integer")
+def delete(query: str | int):
+    return (
+        ApiKey.delete()
+        .where((ApiKey.id == query) | (ApiKey.api_key == query))
+        .execute()
+    )

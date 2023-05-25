@@ -97,10 +97,10 @@ def edit(
         ),
     ],
     # Values as options
-    api_key_hint: str = typer.Option(None, "--api-key-hint", "-k"),
+    api_key_hint: str = typer.Option(None, "--api_key_hint", "-k"),
     name: str = typer.Option(None, "--name", "-n"),
-    request_count: int = typer.Option(None, "--request-count", "-r"),
-    valid_until: int = typer.Option(None, "--valid-until", "-u"),
+    request_count: int = typer.Option(None, "--request_count", "-r"),
+    valid_until: int = typer.Option(None, "--valid_until", "-u"),
     credits: int = typer.Option(None, "--credits", "-c"),
     enabled: bool = typer.Option(None, "--enabled", "-e"),
 ):

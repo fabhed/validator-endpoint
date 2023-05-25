@@ -19,9 +19,12 @@ app = typer.Typer(
 )
 
 
-@app.callback(no_args_is_help=True)
+@app.callback(invoke_without_command=True)
 def main():
-    pass
+    print("Manage config values. Use --help for more info.\n")
+    print("Current config values:")
+    config = Config().load()
+    print(config)
 
 
 @app.command()

@@ -4,7 +4,7 @@ from collections import OrderedDict
 
 from tabulate import tabulate
 
-from . import db
+from .utils import db
 
 column_order = (
     "id",

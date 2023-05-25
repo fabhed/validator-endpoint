@@ -1,16 +1,16 @@
 from typing import Annotated
+
 import typer
 
+from btvep.config import Config
 from btvep.db import api_keys
-import os
-
 
 app = typer.Typer(
     help=f"""
     Update and read config values. Config values available:\n
     \n
     \t- hotkey_mnemonic\n\n
-
+    The hotkey mnemonic for the validator. This is required as the validator will be signing the prompts to miners.\n\n
     Example usage:\n
     - btvep config set hotkey_mnemonic "my mnemonic"\n
     - btvep config get hotkey_mnemonic
@@ -42,18 +42,19 @@ def set(
     """
     Set a config value.
     """
+    config = Config().load()
 
     # handle mnemonic
     # This will currently overwrite the entire .env file.
     # TODO: Add a better way to save config values. Maybe a json file or in db.
     if key == "hotkey_mnemonic":
         # write to .env relative to this file
-        with open(os.path.join(os.path.dirname(__file__), "../.env"), "w") as f:
-            f.write(f"HOTKEY_MNEMONIC={value}")
-        return
+        config.hotkey_mnemonic = value
+        config.save()
     else:
         # Raise error with typer
         raise typer.BadParameter(f"""Unknown config key: {key}""")
+    print(f"""Updated {key} """)
 
 
 @app.command()
@@ -68,12 +69,11 @@ def get(
     """
     Prints a config value.
     """
+    config = Config().load()
 
     # handle mnemonic
     if key == "hotkey_mnemonic":
-        # read to .env relative to this file
-        with open(os.path.join(os.path.dirname(__file__), "../.env"), "r") as f:
-            print(f.read().split("=")[1])
+        print(config.hotkey_mnemonic)
     else:
         # Raise error with typer
         raise typer.BadParameter(f"""Unknown config key: {key}""")

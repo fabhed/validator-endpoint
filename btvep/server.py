@@ -3,15 +3,14 @@ import time
 from typing import Annotated, Dict, List, Union
 
 import bittensor
-from decouple import config
 from fastapi import Body, Depends, FastAPI, Header, HTTPException, status
 
 import btvep
 import btvep.db.api_keys as api_keys
 from btvep.validator_prompter import ValidatorPrompter
 
-mnemonic = config("HOTKEY_MNEMONIC")
-hotkey = bittensor.Keypair.create_from_mnemonic(mnemonic)
+config = btvep.config.Config().load()
+hotkey = bittensor.Keypair.create_from_mnemonic(config.hotkey_mnemonic)
 validator_prompter = ValidatorPrompter(hotkey)
 
 from fastapi.security import OAuth2PasswordBearer

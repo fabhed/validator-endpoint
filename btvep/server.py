@@ -1,4 +1,5 @@
 import asyncio
+from datetime import datetime
 import time
 from typing import Annotated, List, Literal
 
@@ -50,14 +51,19 @@ def api_key_auth(api_key: str = Depends(oauth2_scheme)):
         missing_api_key()
 
     api_key = api_keys.get(api_key)
-    if (
-        (api_key is None)
-        or (api_key.enabled == 0)
-        or (api_key.has_lifetime() and api_key.valid_until < int(time.time()))
-    ):
-        invalid_api_key()
+    if api_key is None:
+        invalid_api_key("API Key is missing in header")
+    elif api_key.enabled == 0:
+        invalid_api_key("API Key is disabled")
+    elif (api_key.valid_until != -1) and (api_key.valid_until < time.time()):
+        invalid_api_key(
+            "API Key has expired as of "
+            + str(datetime.utcfromtimestamp(api_key.valid_until))
+        )
     elif not api_key.has_unlimited_credits() and api_key.credits - cost < 0:
         invalid_api_key("Not enough credits")
+
+    ###  API Key is now validated. ###
 
     # Subtract cost if not unlimited
     credits = None if api_key.has_unlimited_credits() else api_key.credits - cost

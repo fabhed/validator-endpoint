@@ -3,3 +3,4 @@ conda-meta
 .env
 btvep.db
 config.json
+.DS_Store

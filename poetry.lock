@@ -2972,6 +2972,16 @@ files = [
 six = "*"
 
 [[package]]
+name = "peewee"
+version = "3.16.2"
+description = "a little orm"
+optional = false
+python-versions = "*"
+files = [
+    {file = "peewee-3.16.2.tar.gz", hash = "sha256:10769981198c7311f84a0ca8db892fa213303a8eb1305deb795a71e7bd606a91"},
+]
+
+[[package]]
 name = "pexpect"
 version = "4.8.0"
 description = "Pexpect allows easy control of interactive console applications."
@@ -3700,17 +3710,6 @@ files = [
 
 [package.dependencies]
 six = ">=1.5"
-
-[[package]]
-name = "python-decouple"
-version = "3.8"
-description = "Strict separation of settings from code."
-optional = false
-python-versions = "*"
-files = [
-    {file = "python-decouple-3.8.tar.gz", hash = "sha256:ba6e2657d4f376ecc46f77a3a615e058d93ba5e465c01bbe57289bfb7cce680f"},
-    {file = "python_decouple-3.8-py3-none-any.whl", hash = "sha256:d0d45340815b25f4de59c974b855bb38d03151d81b037d9e3f463b0c9f8cbd66"},
-]
 
 [[package]]
 name = "python-json-logger"
@@ -5218,4 +5217,4 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.10,<3.11"
-content-hash = "874ee210d832f875a185a9bf5cc46195d12bb4b3152aada721aa0ed7ff047752"
+content-hash = "f757c971b94870ba86d9534e0b48d5ce4b4270b343f78a3c0b54060b1b7cb51b"

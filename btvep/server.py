@@ -1,10 +1,9 @@
 import asyncio
-import redis.asyncio as redis
-
 import time
-from typing import Annotated, Dict, List, Union
+from typing import Annotated, List, Literal
 
 import bittensor
+import redis.asyncio as redis
 from fastapi import Body, Depends, FastAPI, Header, HTTPException, Request, status
 
 import btvep
@@ -80,10 +79,17 @@ async def startup():
     await FastAPILimiter.init(redis_instance, identifier=rate_limit_identifier)
 
 
-@app.get("/")
-def read_root():
-    url_list = [{"path": route.path, "name": route.name} for route in app.routes]
-    return url_list
+from pydantic import BaseModel
+
+
+class Message(BaseModel):
+    role: Literal["user", "system", "assistant"]
+    content: str
+
+
+class ChatResponse(BaseModel):
+    message: Message
+    responder_hotkey: str
 
 
 @app.post(
@@ -92,9 +98,9 @@ def read_root():
 )
 def chat(
     authorization: Annotated[str | None, Header()] = None,
-    uid: Annotated[int | None, Body()] = 0,
-    messages: Annotated[List[Dict[str, str]] | None, Body()] = None,
-):
+    uid: Annotated[int | None, Body()] = 1,
+    messages: Annotated[List[Message] | None, Body()] = None,
+) -> ChatResponse:
     # An event loop for the thread is required by the bittensor library
     loop = asyncio.new_event_loop()
     asyncio.set_event_loop(loop)
@@ -111,4 +117,4 @@ def chat(
             "responder_hotkey": response.dest_hotkey,
         }
     else:
-        return {"error": True, "message": response.return_message}
+        raise HTTPException(status_code=500, detail=response.return_message)

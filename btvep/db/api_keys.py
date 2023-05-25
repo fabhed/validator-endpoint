@@ -127,10 +127,8 @@ def update(
 
 
 def delete(api_key: str | int):
-    column_to_query = get_column_to_query(api_key)
-    api_key = get(column_to_query == api_key)
-    a = api_key.delete_instance()
-    print("a", a)
+    api_key = get(api_key)
+    return api_key.delete_instance()
 
 
 def get_column_to_query(query: str | int):

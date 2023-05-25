@@ -83,8 +83,8 @@ def delete(
     """
     Deletes an api key.
     """
-    print(f"Deleting key {query}")
-    api_keys.delete(query)
+    api_keys.delete(convert_to_int_if_numeric(query))
+    print(f"Deleted key {query}")
 
 
 # edit

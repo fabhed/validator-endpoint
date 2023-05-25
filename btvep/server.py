@@ -1,9 +1,11 @@
 import asyncio
+import redis.asyncio as redis
+
 import time
 from typing import Annotated, Dict, List, Union
 
 import bittensor
-from fastapi import Body, Depends, FastAPI, Header, HTTPException, status
+from fastapi import Body, Depends, FastAPI, Header, HTTPException, Request, status
 
 import btvep
 import btvep.db.api_keys as api_keys
@@ -14,6 +16,11 @@ hotkey = bittensor.Keypair.create_from_mnemonic(config.hotkey_mnemonic)
 validator_prompter = ValidatorPrompter(hotkey)
 
 from fastapi.security import OAuth2PasswordBearer
+
+
+from fastapi_limiter import FastAPILimiter
+from fastapi_limiter.depends import RateLimiter
+
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
@@ -61,13 +68,28 @@ def api_key_auth(api_key: str = Depends(oauth2_scheme)):
 app = FastAPI()
 
 
+async def rate_limit_identifier(request: Request):
+    return request.headers.get("Authorization").split(" ")[1]
+
+
+@app.on_event("startup")
+async def startup():
+    redis_instance = redis.from_url(
+        "redis://localhost", encoding="utf-8", decode_responses=True
+    )
+    await FastAPILimiter.init(redis_instance, identifier=rate_limit_identifier)
+
+
 @app.get("/")
 def read_root():
     url_list = [{"path": route.path, "name": route.name} for route in app.routes]
     return url_list
 
 
-@app.post("/chat", dependencies=[Depends(api_key_auth)])
+@app.post(
+    "/chat",
+    dependencies=[Depends(api_key_auth), Depends(RateLimiter(times=2, seconds=5))],
+)
 def chat(
     authorization: Annotated[str | None, Header()] = None,
     uid: Annotated[int | None, Body()] = 0,

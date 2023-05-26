@@ -66,6 +66,7 @@ def enable():
 def disable():
     """
     Disable rate limiting.
+    Alias for btvep config set rate_limiting_enabled False
     """
     config = Config().load()
     config.rate_limiting_enabled = False
@@ -82,8 +83,8 @@ def set_redis_url(
     ],
 ):
     """
-    Set the redis url to use for rate limiting. Defaults to redis://localhost\n
-    Alias for `btvep config set redis_url <url>`\n
+    Set the redis url to use for rate limiting. Defaults to redis://localhost
+    Alias for btvep config set redis_url <url>
     """
     config = Config().load()
     config.redis_url = url

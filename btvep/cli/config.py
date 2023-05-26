@@ -4,22 +4,30 @@ from rich.markdown import Markdown
 
 import typer
 
-from btvep.config import Config
-from btvep.db import api_keys
+from btvep.config import Config, CONFIG_PATH, cast_str_to_bool
 
 app = typer.Typer(
-    help="""
-Update and read config values. Config values available:
+    help=f"""
+Update and read config values. Config values are stored in a json file at {CONFIG_PATH}
 
-- **hotkey_mnemonic** The hotkey mnemonic for the validator. This is required as the validator will be signing the prompts to miners.
+General Config values available:
 
--
+- hotkey_mnemonic - The hotkey mnemonic for the validator. This is required as the validator will be signing the prompts to miners.
 
-**Example usage:**
 
-- btvep config set hotkey_mnemonic "my mnemonic"
+Rate Limiting Config values available:
 
-- btvep config get hotkey_mnemonic
+- rate_limiting_enabled - Whether to enable rate limiting. If enabled, the global_rate_limits will be used.
+- redis_url - The redis url to use for rate limiting.
+- global_rate_limits - A list of rate limits. Prefer to use btvep ratelimit to manage rate limits.
+
+
+Example usage:
+    1. Set hotkey_mnemonic:
+       > btvep config set hotkey_mnemonic "my mnemonic"
+
+    2. Get hotkey_mnemonic:
+       > btvep config get hotkey_mnemonic
 """,
 )
 
@@ -57,12 +65,15 @@ def set(
 
     # support all config keys with __dict__
     if key in config.__dict__:
+        # cast to correct type
+        if type(config.__dict__[key]) == bool:
+            value = cast_str_to_bool(value)
         config.__dict__[key] = value
         config.save()
     else:
         # Raise error with typer
         raise typer.BadParameter(f"""Unknown config key: {key}""")
-    print(f"""Updated {key} """)
+    print(f"""{key} = {config.load().__dict__[key]}""")
 
 
 @app.command()
@@ -79,9 +90,9 @@ def get(
     """
     config = Config().load()
 
-    # handle mnemonic
-    if key == "hotkey_mnemonic":
-        print(config.hotkey_mnemonic)
+    # support all config keys with __dict__
+    if key in config.__dict__:
+        print(config.__dict__[key])
     else:
         # Raise error with typer
         raise typer.BadParameter(f"""Unknown config key: {key}""")

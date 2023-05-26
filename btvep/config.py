@@ -12,6 +12,15 @@ CONFIG_PATH = os.path.abspath(CONFIG_PATH)
 from pydantic import BaseModel
 
 
+def cast_str_to_bool(value: str) -> bool:
+    if value.lower() in ["true", "1"]:
+        return True
+    elif value.lower() in ["false", "0"]:
+        return False
+    else:
+        raise ValueError(f"Invalid value for bool: {value}")
+
+
 class Config(BaseModel):
     hotkey_mnemonic: str | None = None
     rate_limiting_enabled = False

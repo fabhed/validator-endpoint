@@ -11,7 +11,7 @@ from . import key
 from . import config
 from . import ratelimit
 
-app = typer.Typer(help="Bitensor Validator Endpoint CLI", rich_markup_mode="markdown")
+app = typer.Typer(help="Bitensor Validator Endpoint CLI", rich_markup_mode="rich")
 
 
 def _version_callback(value: bool) -> None:

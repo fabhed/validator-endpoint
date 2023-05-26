@@ -9,6 +9,7 @@ from btvep import __app_name__, __version__, db
 
 from . import key
 from . import config
+from . import ratelimit
 
 app = typer.Typer(help="Bitensor Validator Endpoint CLI", rich_markup_mode="markdown")
 
@@ -54,3 +55,4 @@ def start(
 
 app.add_typer(key.app, name="key")
 app.add_typer(config.app, name="config")
+app.add_typer(ratelimit.app, name="ratelimit")

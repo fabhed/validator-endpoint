@@ -1,25 +1,23 @@
 import asyncio
 from datetime import datetime
-import time
-from typing import Annotated, List, Literal
+from typing import Annotated, List
 
 import bittensor
 import redis.asyncio as redis
 from fastapi import Body, Depends, FastAPI, Header, HTTPException, Request, status
+from fastapi.security import OAuth2PasswordBearer
+from fastapi_limiter import FastAPILimiter
+from fastapi_limiter.depends import RateLimiter
 
 import btvep
+from btvep.db.api_keys import ApiKey
+from btvep.db.api_keys import update as update_api_key
 from btvep.types import ChatResponse, Message
 from btvep.validator_prompter import ValidatorPrompter
 
 config = btvep.config.Config().load()
 hotkey = bittensor.Keypair.create_from_mnemonic(config.hotkey_mnemonic)
 validator_prompter = ValidatorPrompter(hotkey)
-
-from fastapi.security import OAuth2PasswordBearer
-
-
-from fastapi_limiter import FastAPILimiter
-from fastapi_limiter.depends import RateLimiter
 
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
@@ -35,7 +33,7 @@ def missing_api_key():
     )
 
 
-def invalid_api_key(detail="Invalid API Key"):
+def invalid_api_key(detail="Invalid API key"):
     raise HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail=detail,
@@ -43,32 +41,32 @@ def invalid_api_key(detail="Invalid API Key"):
     )
 
 
-cost = 1  # cost per request
+COST = 1  # cost per request
 
 
-def api_key_auth(api_key: str = Depends(oauth2_scheme)):
-    if (api_key is None) or (api_key == ""):
+def api_key_auth(input_api_key: str = Depends(oauth2_scheme)):
+    if (input_api_key is None) or (input_api_key == ""):
         missing_api_key()
 
-    api_key = api_keys.get(api_key)
+    api_key = ApiKey.get(ApiKey.api_key == input_api_key)
     if api_key is None:
-        invalid_api_key("API Key is missing in header")
+        invalid_api_key("Invalid API key")
     elif api_key.enabled == 0:
-        invalid_api_key("API Key is disabled")
-    elif (api_key.valid_until != -1) and (api_key.valid_until < time.time()):
+        invalid_api_key("API key is disabled")
+    elif (api_key.valid_until != -1) and (api_key.valid_until < datetime.now()):
         invalid_api_key(
-            "API Key has expired as of "
+            "API key has expired as of "
             + str(datetime.utcfromtimestamp(api_key.valid_until))
         )
-    elif not api_key.has_unlimited_credits() and api_key.credits - cost < 0:
+    elif not api_key.has_unlimited_credits() and api_key.credits - COST < 0:
         invalid_api_key("Not enough credits")
 
     ###  API Key is now validated. ###
 
     # Subtract cost if not unlimited
-    credits = None if api_key.has_unlimited_credits() else api_key.credits - cost
+    credits = None if api_key.has_unlimited_credits() else api_key.credits - COST
     # Increment request count and potentially credits
-    api_keys.update(
+    update_api_key(
         api_key.api_key,
         request_count=api_key.request_count + 1,
         credits=credits,
@@ -84,28 +82,29 @@ async def rate_limit_identifier(request: Request):
 
 @app.on_event("startup")
 async def startup():
-    redis_instance = redis.from_url(
-        "redis://localhost", encoding="utf-8", decode_responses=True
-    )
-    await FastAPILimiter.init(redis_instance, identifier=rate_limit_identifier)
+    if config.rate_limiting_enabled:
+        redis_instance = redis.from_url(
+            config.redis_url, encoding="utf-8", decode_responses=True
+        )
+        await FastAPILimiter.init(redis_instance, identifier=rate_limit_identifier)
 
 
-from pydantic import BaseModel
+def get_rate_limits():
+    if not config.rate_limiting_enabled:
+        return []
 
-
-class Message(BaseModel):
-    role: Literal["user", "system", "assistant"]
-    content: str
-
-
-class ChatResponse(BaseModel):
-    message: Message
-    responder_hotkey: str
+    return [
+        Depends(RateLimiter(times=limit["times"], seconds=limit["seconds"]))
+        for limit in config.global_rate_limits
+    ]
 
 
 @app.post(
     "/chat",
-    dependencies=[Depends(api_key_auth), Depends(RateLimiter(times=2, seconds=5))],
+    dependencies=[
+        Depends(api_key_auth),
+        *get_rate_limits(),
+    ],
 )
 def chat(
     authorization: Annotated[str | None, Header()] = None,

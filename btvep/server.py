@@ -10,17 +10,17 @@ from fastapi_limiter import FastAPILimiter
 from fastapi_limiter.depends import RateLimiter
 
 import btvep
-from btvep.constants import DEFAULT_UID
+from btvep.constants import COST, DEFAULT_UID
 from btvep.db.api_keys import ApiKey
 from btvep.db.api_keys import update as update_api_key
 from btvep.types import ChatResponse, Message
 from btvep.validator_prompter import ValidatorPrompter
 
+btvep.db.tables.create_all()
 config = btvep.config.Config().load()
 hotkey = bittensor.Keypair.create_from_mnemonic(config.hotkey_mnemonic)
 validator_prompter = ValidatorPrompter(hotkey, DEFAULT_UID)
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
-btvep.db.tables.create_all()
 
 
 def missing_api_key():
@@ -37,9 +37,6 @@ def invalid_api_key(detail="Invalid API key"):
         detail=detail,
         headers={"WWW-Authenticate": "Bearer"},
     )
-
-
-COST = 1  # cost per request
 
 
 def api_key_auth(input_api_key: str = Depends(oauth2_scheme)):

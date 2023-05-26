@@ -55,9 +55,9 @@ def set(
     """
     config = Config().load()
 
-    if key == "hotkey_mnemonic":
-        # write to .env relative to this file
-        config.hotkey_mnemonic = value
+    # support all config keys with __dict__
+    if key in config.__dict__:
+        config.__dict__[key] = value
         config.save()
     else:
         # Raise error with typer

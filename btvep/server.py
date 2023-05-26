@@ -10,6 +10,7 @@ from fastapi_limiter import FastAPILimiter
 from fastapi_limiter.depends import RateLimiter
 
 import btvep
+from btvep.constants import DEFAULT_UID
 from btvep.db.api_keys import ApiKey
 from btvep.db.api_keys import update as update_api_key
 from btvep.types import ChatResponse, Message
@@ -17,11 +18,8 @@ from btvep.validator_prompter import ValidatorPrompter
 
 config = btvep.config.Config().load()
 hotkey = bittensor.Keypair.create_from_mnemonic(config.hotkey_mnemonic)
-validator_prompter = ValidatorPrompter(hotkey)
-
-
+validator_prompter = ValidatorPrompter(hotkey, DEFAULT_UID)
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
-
 btvep.db.tables.create_all()
 
 
@@ -108,13 +106,12 @@ def get_rate_limits():
 )
 def chat(
     authorization: Annotated[str | None, Header()] = None,
-    uid: Annotated[int | None, Body()] = 1,
+    uid: Annotated[int | None, Body()] = DEFAULT_UID,
     messages: Annotated[List[Message] | None, Body()] = None,
 ) -> ChatResponse:
     # An event loop for the thread is required by the bittensor library
     loop = asyncio.new_event_loop()
     asyncio.set_event_loop(loop)
-
     response = validator_prompter.query_network(messages=messages, uid=uid)
     if response.is_success:
         btvep.db.request.Request.create(

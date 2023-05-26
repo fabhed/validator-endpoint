@@ -1,9 +1,8 @@
-from datetime import datetime
 import json
-from collections import OrderedDict
-
+import secrets
+from datetime import datetime
+from peewee import BooleanField, DateTimeField, IntegerField, TextField, DoesNotExist
 from tabulate import tabulate
-
 from .utils import BaseModel
 
 column_order = (
@@ -19,16 +18,12 @@ column_order = (
     "updated_at",
 )
 
-import secrets
 
 KEY_LENGTH = 48
 
 
-#################### Reimplment this file with peewee ####################
-from peewee import BooleanField, DateTimeField, IntegerField, Model, TextField
-
-
 class ApiKey(BaseModel):
+    id = IntegerField(primary_key=True)
     api_key = TextField(unique=True)
     api_key_hint = TextField()
     name = TextField(null=True)
@@ -46,16 +41,11 @@ class ApiKey(BaseModel):
         return self.valid_until != -1
 
     def __str__(self):
-        # Print dict data with indents using json
-
-        # sortedDict = OrderedDict(
-        #     sorted(self.__dict__["__data__"], key=lambda x: column_order.index(x[0]))
-        # )
         return json.dumps(self.__dict__["__data__"], indent=4, default=str)
 
-    # Define print as a table for lists of ApiKey objects static
     @staticmethod
     def tabulate(api_keys):
+        """Print a list of API keys in a table."""
         return tabulate(
             api_keys,
             headers="keys",
@@ -84,8 +74,8 @@ def insert(
 def get(query: str | int) -> ApiKey:
     try:
         return ApiKey.get((ApiKey.id == query) | (ApiKey.api_key == query))
-    except ApiKey.DoesNotExist as e:
-        print(e)
+    except DoesNotExist as error:
+        print(error)
         return None
 
 

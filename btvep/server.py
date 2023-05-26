@@ -78,10 +78,16 @@ async def rate_limit_identifier(request: Request):
 @app.on_event("startup")
 async def startup():
     if config.rate_limiting_enabled:
-        redis_instance = redis.from_url(
-            config.redis_url, encoding="utf-8", decode_responses=True
-        )
-        await FastAPILimiter.init(redis_instance, identifier=rate_limit_identifier)
+        try:
+            redis_instance = redis.from_url(
+                config.redis_url, encoding="utf-8", decode_responses=True
+            )
+            await FastAPILimiter.init(redis_instance, identifier=rate_limit_identifier)
+        except redis.ConnectionError as e:
+            rich.print(
+                f"[red]ERROR:[/red] Could not connect to redis on [cyan]{config.redis_url}[/cyan]\n [red]Redis is required for rate limiting.[/red]"
+            )
+            raise e
 
 
 def get_rate_limits():

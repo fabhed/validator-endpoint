@@ -8,6 +8,7 @@ from fastapi import Body, Depends, FastAPI, Header, HTTPException, Request, stat
 from fastapi.security import OAuth2PasswordBearer
 from fastapi_limiter import FastAPILimiter
 from fastapi_limiter.depends import RateLimiter
+import rich
 
 import btvep
 from btvep.constants import COST, DEFAULT_UID
@@ -18,6 +19,8 @@ from btvep.validator_prompter import ValidatorPrompter
 
 btvep.db.tables.create_all()
 config = btvep.config.Config().load()
+print("Starting http server with btvep config:")
+rich.print_json(config.to_json())
 hotkey = bittensor.Keypair.create_from_mnemonic(config.hotkey_mnemonic)
 validator_prompter = ValidatorPrompter(hotkey, DEFAULT_UID)
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")

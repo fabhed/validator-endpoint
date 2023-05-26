@@ -16,14 +16,15 @@ Allow validators to easily host an API for other services to prompt the Bittenso
 - [`btvep`](./docs/cli.md) CLI to manage keys and configuration
 - API key lifetimes - set expiry dates
 - API key credits - limit amount of requests with credits
+- Request logs
+- Configurable rate limits
 - Drop-in replacement for [OpenAI's Chat API](https://platform.openai.com/docs/api-reference/chat)
 - Filter requests via [OpenAI's Moderation Endpoint](https://platform.openai.com/docs/guides/moderation/overview)
 
 ## Planned features
 
-- Request logs
+- Custom API-key-level rate limits
 - A Web Dashboard for statistics and key management (CLI Alternative)
-- Configurable rate limits - Restrict requests per minute per api_key
 
 ## Getting started
 

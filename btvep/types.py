@@ -1,4 +1,4 @@
-import typing
+from typing import Literal
 from pydantic import BaseModel
 
 
@@ -6,3 +6,13 @@ from pydantic import BaseModel
 class RateLimit(BaseModel):
     times: int
     seconds: int
+
+
+class Message(BaseModel):
+    role: Literal["user", "system", "assistant"]
+    content: str
+
+
+class ChatResponse(BaseModel):
+    message: Message
+    responder_hotkey: str

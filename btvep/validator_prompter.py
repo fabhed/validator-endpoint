@@ -1,4 +1,7 @@
+from typing import List
 import bittensor
+
+from btvep.types import Message
 
 DEFAULT_UID = 0  # default to the first miner for now
 
@@ -14,9 +17,9 @@ class ValidatorPrompter:
         axon = self.metagraph.axons[uid]
         return bittensor.text_prompting(keypair=self.hotkey, axon=axon)
 
-    def query_network(self, messages, uid=None):
-        roles = [el["role"] for el in messages]
-        messages = [el["content"] for el in messages]
+    def query_network(self, messages: List[Message], uid=None):
+        roles = [el.role for el in messages]
+        messages = [el.content for el in messages]
         dendrite = (
             self._get_dendrite(uid) if uid is not DEFAULT_UID else self.default_dendrite
         )

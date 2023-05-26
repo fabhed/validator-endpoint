@@ -8,7 +8,7 @@ import redis.asyncio as redis
 from fastapi import Body, Depends, FastAPI, Header, HTTPException, Request, status
 
 import btvep
-import btvep.db.api_keys as api_keys
+from btvep.types import ChatResponse, Message
 from btvep.validator_prompter import ValidatorPrompter
 
 config = btvep.config.Config().load()

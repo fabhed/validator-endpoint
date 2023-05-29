@@ -127,7 +127,10 @@ def chat(
             responder_hotkey=response.dest_hotkey,
         )
         return {
-            "message": {"role": "assistant", "content": response.completion},
+            "choices": {
+                "index": 0,
+                "choices": [{"role": "assistant", "content": response.completion}],
+            },
             "responder_hotkey": response.dest_hotkey,
         }
     else:

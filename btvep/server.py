@@ -129,7 +129,7 @@ def chat(
         return {
             "choices": {
                 "index": 0,
-                "choices": [{"role": "assistant", "content": response.completion}],
+                "message": [{"role": "assistant", "content": response.completion}],
             },
             "responder_hotkey": response.dest_hotkey,
         }

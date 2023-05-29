@@ -19,23 +19,32 @@ $ btvep [OPTIONS] COMMAND [ARGS]...
 
 * `config`: Update and read config values.
 * `key`: Manage api keys.
+* `logs`: Inspect request logs.
+* `ratelimit`: Global Rate limit settings.
 * `start`: Start the api server.
 
 ## `btvep config`
 
-Update and read config values. Config values available:
+Update and read config values. Config values are stored in a json file at /Users/fabian/git/validator-endpoint/config.json
+
+General Config values available:
+
+- hotkey_mnemonic - The hotkey mnemonic for the validator. This is required as the validator will be signing the prompts to miners.
 
 
+Rate Limiting Config values available:
 
-    - hotkey_mnemonic
-
+- rate_limiting_enabled - Whether to enable rate limiting. If enabled, the global_rate_limits will be used.
+- redis_url - The redis url to use for rate limiting.
+- global_rate_limits - A list of rate limits. Prefer to use btvep ratelimit to manage rate limits.
 
 
 Example usage:
+    1. Set hotkey_mnemonic:
+       > btvep config set hotkey_mnemonic "my mnemonic"
 
-- btvep config set hotkey_mnemonic "my mnemonic"
-
-- btvep config get hotkey_mnemonic
+    2. Get hotkey_mnemonic:
+       > btvep config get hotkey_mnemonic
 
 **Usage**:
 
@@ -162,10 +171,15 @@ $ btvep key edit [OPTIONS] QUERY
 
 **Options**:
 
-* `-k, --api-key-hint TEXT`
+* `-k, --api_key_hint TEXT`
 * `-n, --name TEXT`
-* `-r, --request-count INTEGER`
-* `-u, --valid-until INTEGER`
+* `-r, --request_count INTEGER`
+* `-u, --valid_until TEXT`: When the api key expires.
+Set to false to disable expiration.
+You can specify the expiry in natural language (e.g. 'in 1 month', 'in 10 days', 'December 2025', 'next year', 'tomorrow', 'next week', etc.)
+or as a date (e.g. '2025-01-01').
+or as an epoch timestamp (e.g. '1735603200')
+Parsing of relative dates will be relative to the current date but ignore the current time of day.
 * `-c, --credits INTEGER`
 * `-e, --enabled`
 * `--help`: Show this message and exit.
@@ -178,6 +192,148 @@ List all api keys.
 
 ```console
 $ btvep key list [OPTIONS]
+```
+
+**Options**:
+
+* `--help`: Show this message and exit.
+
+## `btvep logs`
+
+Inspect request logs.
+
+**Usage**:
+
+```console
+$ btvep logs [OPTIONS] COMMAND [ARGS]...
+```
+
+**Options**:
+
+* `-k, --key TEXT`: Filter logs by API key.
+* `-r, --responder-hotkey TEXT`: Filter logs by responder hotkey.
+* `-l, --lines INTEGER`: Maximum number of lines to print.  [default: 100]
+* `-s, --start [%Y-%m-%d|%Y-%m-%dT%H:%M:%S|%Y-%m-%d %H:%M:%S]`: The start of the time range to inspect.
+* `-e, --end [%Y-%m-%d|%Y-%m-%dT%H:%M:%S|%Y-%m-%d %H:%M:%S]`: The end of the time range to inspect.
+* `--help`: Show this message and exit.
+
+## `btvep ratelimit`
+
+Global Rate limit settings. Rate limits requires a Redis server.
+Global rate limits can be overridden by setting rate limits on an api key.
+
+**Usage**:
+
+```console
+$ btvep ratelimit [OPTIONS] COMMAND [ARGS]...
+```
+
+**Options**:
+
+* `--help`: Show this message and exit.
+
+**Commands**:
+
+* `add`: Add a global rate limit.
+* `delete`: Delete a global rate limit.
+* `disable`: Disable rate limiting.
+* `enable`: Enable rate limiting.
+* `set-redis-url`: Set the redis url to use for rate limiting.
+* `status`: If rate limiting is enabled or not.
+
+### `btvep ratelimit add`
+
+Add a global rate limit. This will be part of the default rate limits for all api keys without specific rate limits.
+
+**Usage**:
+
+```console
+$ btvep ratelimit add [OPTIONS] TIMES SECONDS
+```
+
+**Arguments**:
+
+* `TIMES`: How many times to allow in the given time period.  [required]
+* `SECONDS`: The time period in seconds.  [required]
+
+**Options**:
+
+* `--help`: Show this message and exit.
+
+### `btvep ratelimit delete`
+
+Delete a global rate limit.
+
+**Usage**:
+
+```console
+$ btvep ratelimit delete [OPTIONS] INDEX
+```
+
+**Arguments**:
+
+* `INDEX`: The index (starts at 0) of the rate limit to delete.  [required]
+
+**Options**:
+
+* `--help`: Show this message and exit.
+
+### `btvep ratelimit disable`
+
+Disable rate limiting.
+Alias for btvep config set rate_limiting_enabled False
+
+**Usage**:
+
+```console
+$ btvep ratelimit disable [OPTIONS]
+```
+
+**Options**:
+
+* `--help`: Show this message and exit.
+
+### `btvep ratelimit enable`
+
+Enable rate limiting.
+
+**Usage**:
+
+```console
+$ btvep ratelimit enable [OPTIONS]
+```
+
+**Options**:
+
+* `--help`: Show this message and exit.
+
+### `btvep ratelimit set-redis-url`
+
+Set the redis url to use for rate limiting. Defaults to redis://localhost
+Alias for btvep config set redis_url <url>
+
+**Usage**:
+
+```console
+$ btvep ratelimit set-redis-url [OPTIONS] URL
+```
+
+**Arguments**:
+
+* `URL`: The redis url to set.  [required]
+
+**Options**:
+
+* `--help`: Show this message and exit.
+
+### `btvep ratelimit status`
+
+If rate limiting is enabled or not.
+
+**Usage**:
+
+```console
+$ btvep ratelimit status [OPTIONS]
 ```
 
 **Options**:

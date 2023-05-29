@@ -73,10 +73,16 @@ Response:
 
 ```json
 {
-  "message": {
-    "role": "assistant",
-    "content": "this is a test!"
-  }
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "role": "assistant",
+        "content": "this is a test!"
+      },
+      "responder_hotkey": "..."
+    }
+  ]
 }
 ```
 
@@ -97,10 +103,16 @@ Response:
 
 ```json
 {
-  "message": {
-    "role": "assistant",
-    "content": "this is a test!"
-  }
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "role": "assistant",
+        "content": "this is a test!"
+      },
+      "responder_hotkey": "..."
+    }
+  ]
 }
 ```
 

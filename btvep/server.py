@@ -75,7 +75,7 @@ def api_key_auth(input_api_key: str = Depends(oauth2_scheme)):
     elif not api_key.has_unlimited_credits() and api_key.credits - COST < 0:
         invalid_api_key("Not enough credits")
 
-    ###  API Key is now validated. ###
+    ###  API key is now validated. ###
 
     # Subtract cost if not unlimited
     credits = None if api_key.has_unlimited_credits() else api_key.credits - COST

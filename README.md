@@ -12,7 +12,7 @@ Allow validators to easily host an API for other services to prompt the Bittenso
 
 ## Features
 
-- Host an API server with API-key authentication
+- Host an API server with API key authentication
 - [`btvep`](./docs/cli.md) CLI to manage keys and configuration
 - API key lifetimes - set expiry dates
 - API key credits - limit amount of requests with credits
@@ -23,7 +23,7 @@ Allow validators to easily host an API for other services to prompt the Bittenso
 
 ## Planned features
 
-- Custom API-key-level rate limits
+- Custom API key-level rate limits
 - A Web Dashboard for statistics and key management (CLI Alternative)
 
 ## Getting started

@@ -45,13 +45,21 @@ def start(
             help="The port to listen on.",
         ),
     ] = 8000,
+    reload: Annotated[
+        bool,
+        typer.Option(
+            "--reload",
+            "-r",
+            help="Enable auto-reload on changes (for development).",
+        ),
+    ] = False,
 ):
     """
     Start the api server.
     """
     import uvicorn
 
-    uvicorn.run("btvep.server:app", host="0.0.0.0", port=port)
+    uvicorn.run("btvep.server:app", host="0.0.0.0", port=port, reload=reload)
 
 
 app.add_typer(key.app, name="key")

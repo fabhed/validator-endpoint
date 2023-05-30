@@ -17,10 +17,12 @@ from btvep.validator_prompter import ValidatorPrompter
 create_all_tables()
 config = Config().load()
 
+# Give info around configuration at server start
 print("Starting http server with btvep config:")
 rich.print_json(config.to_json())
 print("Using SQLite database at", DB_PATH)
 
+# Initialize the validator prompter for bittensor
 hotkey = bittensor.Keypair.create_from_mnemonic(config.hotkey_mnemonic)
 validator_prompter = ValidatorPrompter(hotkey, DEFAULT_UID)
 

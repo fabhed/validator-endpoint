@@ -28,6 +28,20 @@ validator_prompter = ValidatorPrompter(hotkey, DEFAULT_UID)
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
 
+async def reset_db_state():
+    db._state._state.set(db_state_default.copy())
+    db._state.reset()
+
+
+def get_db(db_state=Depends(reset_db_state)):
+    try:
+        db.connect()
+        yield
+    finally:
+        if not db.is_closed():
+            db.close()
+
+
 def missing_api_key():
     raise HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
@@ -65,6 +79,7 @@ def api_key_auth(input_api_key: str = Depends(oauth2_scheme)):
 
     # Subtract cost if not unlimited
     credits = None if api_key.has_unlimited_credits() else api_key.credits - COST
+
     # Increment request count and potentially credits
     update_api_key(
         api_key.api_key,
@@ -108,6 +123,7 @@ def get_rate_limits():
 @app.post(
     "/chat",
     dependencies=[
+        Depends(get_db),
         Depends(api_key_auth),
         *get_rate_limits(),
     ],

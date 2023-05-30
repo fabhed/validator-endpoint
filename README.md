@@ -139,7 +139,7 @@ code .
 btvep --help
 
 # Run the server with auto reloading
-uvicorn btvep.server:app --reload
+btvep start --reload
 ```
 
 ### Generate docs

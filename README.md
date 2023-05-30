@@ -149,7 +149,13 @@ btvep start --reload
 ### Generate docs
 
 ```bash
-typer btvep.cli utils docs --output docs/cli.md --name btvep
+poetry run typer btvep.cli utils docs --output docs/cli.md --name btvep
+```
+
+### Build .whl files in /dist
+
+```bash
+poetry build
 ```
 
 ### grpcio dependency (from bittensor) arm fix

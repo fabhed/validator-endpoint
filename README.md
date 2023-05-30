@@ -17,13 +17,12 @@ Allow validators to easily host an API for other services to prompt the Bittenso
 - API key lifetimes - set expiry dates
 - API key credits - limit amount of requests with credits
 - Request logs
-- Configurable rate limits
+- Rate limits - Configure default limits or custom per API key
 - Drop-in replacement for [OpenAI's Chat API](https://platform.openai.com/docs/api-reference/chat)
-- Filter requests via [OpenAI's Moderation Endpoint](https://platform.openai.com/docs/guides/moderation/overview)
 
 ## Planned features
 
-- Custom API key-level rate limits
+- Filter requests via [OpenAI's Moderation Endpoint](https://platform.openai.com/docs/guides/moderation/overview)
 - A Web Dashboard for statistics and key management (CLI Alternative)
 
 ## Getting started

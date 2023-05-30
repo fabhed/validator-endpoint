@@ -129,11 +129,13 @@ def chat(
             responder_hotkey=response.dest_hotkey,
         )
         return {
-            "choices": {
-                "index": 0,
-                "message": [{"role": "assistant", "content": response.completion}],
-            },
-            "responder_hotkey": response.dest_hotkey,
+            "choices": [
+                {
+                    "index": 0,  # Hardcoded to 0 until support for multiple choices from bittensor
+                    "message": {"role": "assistant", "content": response.completion},
+                    "responder_hotkey": response.dest_hotkey,
+                }
+            ],
         }
     else:
         raise HTTPException(status_code=500, detail=response.return_message)

@@ -1,4 +1,4 @@
-from typing import Literal
+from typing import List, Literal
 from pydantic import BaseModel
 
 
@@ -13,6 +13,13 @@ class Message(BaseModel):
     content: str
 
 
-class ChatResponse(BaseModel):
-    message: Message
+class ResponseMessage(BaseModel):
+    """Message with an index and responder hotkey"""
+
+    index: int
     responder_hotkey: str
+    message: Message
+
+
+class ChatResponse(BaseModel):
+    choices: List[ResponseMessage]

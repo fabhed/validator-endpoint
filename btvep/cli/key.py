@@ -122,7 +122,7 @@ def edit(
 
     if valid_until is None:
         parsed_valid_until = None
-    if valid_until.lower() == "false" or valid_until.lower() == "-1":
+    elif valid_until.lower() == "false" or valid_until.lower() == "-1":
         valid_until = -1
     else:
         # https://dateparser.readthedocs.io/en/latest/

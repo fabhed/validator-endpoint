@@ -230,11 +230,12 @@ $ btvep ratelimit [OPTIONS] COMMAND [ARGS]...
 
 **Options**:
 
+* `-k, --key TEXT`: The api key (ID or the key itself) to view rate limits for.
 * `--help`: Show this message and exit.
 
 **Commands**:
 
-* `add`: Add a global rate limit.
+* `add`: Add a rate limit.
 * `delete`: Delete a global rate limit.
 * `disable`: Disable rate limiting.
 * `enable`: Enable rate limiting.
@@ -243,7 +244,7 @@ $ btvep ratelimit [OPTIONS] COMMAND [ARGS]...
 
 ### `btvep ratelimit add`
 
-Add a global rate limit. This will be part of the default rate limits for all api keys without specific rate limits.
+Add a rate limit. Global rate limits do not apply to API keys with their own rate limits.
 
 **Usage**:
 
@@ -258,6 +259,7 @@ $ btvep ratelimit add [OPTIONS] TIMES SECONDS
 
 **Options**:
 
+* `-k, --key TEXT`: The api key (ID or the key itself) to add the rate limit to. If not specified, the rate limit will be added to the global rate limits.
 * `--help`: Show this message and exit.
 
 ### `btvep ratelimit delete`
@@ -353,4 +355,5 @@ $ btvep start [OPTIONS]
 **Options**:
 
 * `--port INTEGER`: The port to listen on.  [default: 8000]
+* `-r, --reload`: Enable auto-reload on changes (for development).
 * `--help`: Show this message and exit.

@@ -18,10 +18,10 @@ $ btvep [OPTIONS] COMMAND [ARGS]...
 **Commands**:
 
 * `config`: Update and read config values.
-* `key`: Manage api keys.
+* `key`: Manage API keys.
 * `logs`: Inspect request logs.
-* `ratelimit`: Global Rate limit settings.
-* `start`: Start the api server.
+* `ratelimit`: Global & API Key-specific Rate limit...
+* `start`: Start the API server.
 
 ## `btvep config`
 
@@ -100,7 +100,7 @@ $ btvep config set [OPTIONS] KEY VALUE
 
 ## `btvep key`
 
-Manage api keys.
+Manage API keys.
 
 **Usage**:
 
@@ -114,14 +114,14 @@ $ btvep key [OPTIONS] COMMAND [ARGS]...
 
 **Commands**:
 
-* `create`: Create a new api key.
-* `delete`: Deletes an api key.
-* `edit`: Edit an api key.
-* `list`: List all api keys.
+* `create`: Create a new API key.
+* `delete`: Deletes an API key.
+* `edit`: Edit an API key.
+* `list`: List all API keys.
 
 ### `btvep key create`
 
-Create a new api key.
+Create a new API key.
 
 **Usage**:
 
@@ -131,15 +131,15 @@ $ btvep key create [OPTIONS]
 
 **Options**:
 
-* `-n, --name TEXT`: The name of the api key.
-* `-v, --valid-until INTEGER`: The unix timestamp when the api key expires. Defaults to -1 which means that the key never expires.  [default: -1]
-* `-c, --credits INTEGER`: The number of credits the api key has. -1 means unlimited.  [default: -1]
-* `-e, --enable / -d, --disable`: Whether the api key is enabled or not. Disabled keys cannot make requests.  [default: enable]
+* `-n, --name TEXT`: The name of the API key.
+* `-v, --valid-until INTEGER`: The unix timestamp when the API key expires. Defaults to -1 which means that the key never expires.  [default: -1]
+* `-c, --credits INTEGER`: The number of credits the API key has. -1 means unlimited.  [default: -1]
+* `-e, --enable / -d, --disable`: Whether the API key is enabled or not. Disabled keys cannot make requests.  [default: enable]
 * `--help`: Show this message and exit.
 
 ### `btvep key delete`
 
-Deletes an api key.
+Deletes an API key.
 
 **Usage**:
 
@@ -149,7 +149,7 @@ $ btvep key delete [OPTIONS] QUERY
 
 **Arguments**:
 
-* `QUERY`: The api key to delete. Can be specified by either the key or its numerical id.  [required]
+* `QUERY`: The API key to delete. Can be specified by either the key or its numerical id.  [required]
 
 **Options**:
 
@@ -157,7 +157,7 @@ $ btvep key delete [OPTIONS] QUERY
 
 ### `btvep key edit`
 
-Edit an api key.
+Edit an API key.
 
 **Usage**:
 
@@ -167,26 +167,26 @@ $ btvep key edit [OPTIONS] QUERY
 
 **Arguments**:
 
-* `QUERY`: The api key to edit. Can be specified by either the key or its numerical id.  [required]
+* `QUERY`: The API key to edit. Can be specified by either the key or its numerical id.  [required]
 
 **Options**:
 
 * `-k, --api_key_hint TEXT`
 * `-n, --name TEXT`
 * `-r, --request_count INTEGER`
-* `-u, --valid_until TEXT`: When the api key expires.
+* `-u, --valid_until TEXT`: When the API key expires.
 Set to false to disable expiration.
 You can specify the expiry in natural language (e.g. 'in 1 month', 'in 10 days', 'December 2025', 'next year', 'tomorrow', 'next week', etc.)
 or as a date (e.g. '2025-01-01').
 or as an epoch timestamp (e.g. '1735603200')
 Parsing of relative dates will be relative to the current date but ignore the current time of day.
 * `-c, --credits INTEGER`
-* `-e, --enable / -d, --disable`: Enable or disable the api key.
+* `-e, --enable / -d, --disable`: Enable or disable the API key.
 * `--help`: Show this message and exit.
 
 ### `btvep key list`
 
-List all api keys.
+List all API keys.
 
 **Usage**:
 
@@ -219,7 +219,7 @@ $ btvep logs [OPTIONS] COMMAND [ARGS]...
 
 ## `btvep ratelimit`
 
-Global Rate limit settings. Rate limits requires a Redis server.
+Global & API Key-specific Rate limit settings. Rate limits requires a Redis server.
 Global rate limits can be overridden by setting rate limits on an api key.
 
 **Usage**:
@@ -230,7 +230,7 @@ $ btvep ratelimit [OPTIONS] COMMAND [ARGS]...
 
 **Options**:
 
-* `-k, --key TEXT`: The api key (ID or the key itself) to view rate limits for.
+* `-k, --key TEXT`: The API key (ID or the key itself) to view rate limits for.
 * `--help`: Show this message and exit.
 
 **Commands**:
@@ -344,7 +344,7 @@ $ btvep ratelimit status [OPTIONS]
 
 ## `btvep start`
 
-Start the api server.
+Start the API server.
 
 **Usage**:
 

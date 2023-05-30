@@ -9,7 +9,7 @@ from .utils import db
 
 class Request(Model):
     id = AutoField()
-    api_key = ForeignKeyField(ApiKey, field="api_key")
+    api_key = ForeignKeyField(ApiKey, field="api_key", backref="requests")
     timestamp = TimestampField(default=datetime.datetime.now)
     prompt = TextField()
     response = TextField()

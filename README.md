@@ -75,11 +75,11 @@ Response:
   "choices": [
     {
       "index": 0,
+      "responder_hotkey": "5ETyaEdDp2RQDoGazHzdGRmJUSzfrXCrMj5PyoFoskFdtsyH",
       "message": {
         "role": "assistant",
         "content": "this is a test!"
-      },
-      "responder_hotkey": "..."
+      }
     }
   ]
 }
@@ -105,11 +105,11 @@ Response:
   "choices": [
     {
       "index": 0,
+      "responder_hotkey": "5ETyaEdDp2RQDoGazHzdGRmJUSzfrXCrMj5PyoFoskFdtsyH",
       "message": {
         "role": "assistant",
         "content": "this is a test!"
-      },
-      "responder_hotkey": "..."
+      }
     }
   ]
 }

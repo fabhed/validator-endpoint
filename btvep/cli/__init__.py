@@ -55,7 +55,7 @@ def start(
     ] = False,
 ):
     """
-    Start the api server.
+    Start the API server.
     """
     import uvicorn
 

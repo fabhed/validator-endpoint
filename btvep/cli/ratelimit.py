@@ -43,7 +43,7 @@ def main(
         typer.Option(
             "--key",
             "-k",
-            help="The api key (ID or the key itself) to view rate limits for.",
+            help="The API key (ID or the key itself) to view rate limits for.",
         ),
     ] = None,
 ):
@@ -57,7 +57,7 @@ def main(
                 return
             rate_limits = json.loads(api_key.rate_limits)
             print_ratelimit_table(
-                f"Rate limits for api key {api_key.api_key}", rate_limits
+                f"Rate limits for API key {api_key.api_key}", rate_limits
             )
 
         else:

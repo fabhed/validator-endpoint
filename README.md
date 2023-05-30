@@ -49,6 +49,9 @@ curl http://localhost:8000/chat \
      "messages": [{"role": "user", "content": "Say this is a test!"}]
    }'
 ```
+## Tutorials
+
+- [Colab Notebook Tutorial](https://colab.research.google.com/drive/1RRQhxSmGiULEZNj0gYswa2JksZ56cGa1?usp=sharing): A step-by-step guide on how to use our project in a Colab notebook.
 
 ## Requirements
 

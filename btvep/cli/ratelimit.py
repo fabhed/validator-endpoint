@@ -17,15 +17,16 @@ help_text = f"""
 app = typer.Typer(help=help_text)
 
 
-def print_ratelimit_table():
-    config = Config().load()
+def print_ratelimit_table(
+    title: str, rate_limits: list[RateLimit] = Config().load().global_rate_limits
+):
     # Print as a table with index isntead
-    table = Table(title="Current global rate limits")
+    table = Table(title=title)
     table.add_column("Index")
     table.add_column("Requests")
     table.add_column("Per x seconds")
 
-    for i, rate_limit in enumerate(config.global_rate_limits):
+    for i, rate_limit in enumerate(rate_limits):
         table.add_row(
             str(i),
             str(rate_limit["times"]),
@@ -34,12 +35,34 @@ def print_ratelimit_table():
     rich.print(table)
 
 
-@app.callback(invoke_without_command=True, no_args_is_help=True)
-def main(ctx: typer.Context):
-    # check ctx
+@app.callback(invoke_without_command=True)
+def main(
+    ctx: typer.Context,
+    api_key: Annotated[
+        str,
+        typer.Option(
+            "--key",
+            "-k",
+            help="The api key (ID or the key itself) to view rate limits for.",
+        ),
+    ] = None,
+):
     if ctx.invoked_subcommand is None:
-        print(help_text)
-        print_ratelimit_table()
+        if ctx.params["api_key"]:
+            api_key = api_keys.get(api_key)
+            if not api_key:
+                raise typer.BadParameter(f"API key {api_key.api_key} not found.")
+            if not api_key.rate_limits:
+                typer.echo(f"API key {api_key.api_key} has no rate limits set.")
+                return
+            rate_limits = json.loads(api_key.rate_limits)
+            print_ratelimit_table(
+                f"Rate limits for api key {api_key.api_key}", rate_limits
+            )
+
+        else:
+            print_ratelimit_table("Current global rate limits")
+            print(ctx.get_help())
 
 
 @app.command()
@@ -125,22 +148,22 @@ def add(
         api_key = api_keys.get(api_key)
         if api_key is None:
             raise typer.BadParameter(f"API key {api_key} does not exist")
+
         if api_key.rate_limits is None:
             api_key.rate_limits = []
         else:
-            # Parse json
-
             api_key.rate_limits = json.loads(api_key.rate_limits)
-        api_key.rate_limits.append(rate_limit)
+        api_key.rate_limits.append(rate_limit.dict())
 
         # Save
+        print(api_key.rate_limits)
         api_key.rate_limits = json.dumps(api_key.rate_limits)
         api_key.save()
         print(f"Added rate limit to api key {api_key.name}")
         return
     config.global_rate_limits.append(rate_limit)
     config.save()
-    print_ratelimit_table()
+    print_ratelimit_table("Current global rate limits")
 
 
 @app.command()
@@ -158,4 +181,4 @@ def delete(
     config = Config().load()
     config.global_rate_limits.pop(index)
     config.save()
-    print_ratelimit_table()
+    print_ratelimit_table("Current global rate limits")

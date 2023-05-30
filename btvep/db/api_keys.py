@@ -17,6 +17,7 @@ class ApiKey(BaseModel):
     valid_until = DateTimeField(default=-1)
     credits = IntegerField(default=-1)
     enabled = BooleanField(default=True)
+    rate_limits = TextField(null=True)
     created_at = DateTimeField(default=datetime.now)
     updated_at = DateTimeField(default=datetime.now)
 
@@ -60,6 +61,14 @@ def insert(
 def get(query: str | int) -> ApiKey:
     try:
         return ApiKey.get((ApiKey.id == query) | (ApiKey.api_key == query))
+    except DoesNotExist as error:
+        print(error)
+        return None
+
+
+def get_by_key(api_key: str) -> ApiKey:
+    try:
+        return ApiKey.get((ApiKey.api_key == api_key))
     except DoesNotExist as error:
         print(error)
         return None

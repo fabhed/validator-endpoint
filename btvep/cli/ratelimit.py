@@ -1,4 +1,5 @@
 from typing import Annotated
+import json
 import rich
 from rich.table import Table
 
@@ -105,12 +106,38 @@ def add(
             help="The time period in seconds.",
         ),
     ],
+    api_key: Annotated[
+        str,
+        typer.Option(
+            "--key",
+            "-k",
+            help="The api key (ID or the key itself) to add the rate limit to. If not specified, the rate limit will be added to the global rate limits.",
+        ),
+    ] = None,
 ):
     """
-    Add a global rate limit. This will be part of the default rate limits for all api keys without specific rate limits.
+    Add a rate limit. Global rate limits do not apply to API keys with their own rate limits.
     """
     config = Config().load()
     rate_limit = RateLimit(times=times, seconds=seconds)
+    if api_key:
+        # Add to the api key
+        api_key = api_keys.get(api_key)
+        if api_key is None:
+            raise typer.BadParameter(f"API key {api_key} does not exist")
+        if api_key.rate_limits is None:
+            api_key.rate_limits = []
+        else:
+            # Parse json
+
+            api_key.rate_limits = json.loads(api_key.rate_limits)
+        api_key.rate_limits.append(rate_limit)
+
+        # Save
+        api_key.rate_limits = json.dumps(api_key.rate_limits)
+        api_key.save()
+        print(f"Added rate limit to api key {api_key.name}")
+        return
     config.global_rate_limits.append(rate_limit)
     config.save()
     print_ratelimit_table()

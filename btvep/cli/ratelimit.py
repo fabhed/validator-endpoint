@@ -11,7 +11,7 @@ from btvep.db import api_keys
 from btvep.types import RateLimit
 
 help_text = f"""
-    Global Rate limit settings. Rate limits requires a Redis server.
+    Global & API Key-specific Rate limit settings. Rate limits requires a Redis server.
     Global rate limits can be overridden by setting rate limits on an api key.
     """
 app = typer.Typer(help=help_text)

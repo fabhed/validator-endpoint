@@ -8,25 +8,36 @@ How to make requests to the Validator Endpoint.
 import requests
 import json
 
-url = 'http://<IP_ADDRESS>:<PORT>/chat'
+URL = "http://localhost:8000/chat"  # Update to match your server url
+API_KEY = "h3t5tiRs4GUZFXzhHTnyQkPDe22S4Sj6ibMW_SuR14fVTwdFO6rk5mZA3OlWP_Pp"  # Update to match your API key
+
 headers = {
-    'Content-Type': 'application/json',
-    'Authorization': 'Bearer <API_KEY>',
-    'Endpoint-Version': '2023-05-19'
+    "Content-Type": "application/json",
+    "Authorization": f"Bearer {API_KEY}",
+    "Endpoint-Version": "2023-05-19",
 }
+
 data = {
     'messages': [{'role': 'user', 'content': 'What is 1+1?'}]
 }
 
-response = requests.post(url, headers=headers, data=json.dumps(data))
-reply = response.json()["message"]["content"]
-print("Reply:", reply)
+response = requests.post(URL, headers=headers, data=json.dumps(data))
+
+# handle errors
+if response.status_code != 200:
+    print("Error:", response.json()["detail"])
+
+else:
+  choice = response.json()["choices"][0]
+  data["messages"].append(choice["message"])
+  reply = choice["message"]["content"]
+  print("Reply:", reply, "\n")
 ```
 
 Output:
 
 ```
-Reply: As an AI language model, I can tell you that the answer to 1+1 is 2.
+Reply: 1+1 equals 2.
 ```
 
 ## Basic Request with Using Curl

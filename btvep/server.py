@@ -42,15 +42,7 @@ def get_db(db_state=Depends(reset_db_state)):
             db.close()
 
 
-def missing_api_key():
-    raise HTTPException(
-        status_code=status.HTTP_401_UNAUTHORIZED,
-        detail="Missing API Key",
-        headers={"WWW-Authenticate": "Bearer"},
-    )
-
-
-def invalid_api_key(detail="Invalid API key"):
+def raiseKeyError(detail: str):
     raise HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail=detail,
@@ -60,20 +52,20 @@ def invalid_api_key(detail="Invalid API key"):
 
 def api_key_auth(input_api_key: str = Depends(oauth2_scheme)):
     if (input_api_key is None) or (input_api_key == ""):
-        missing_api_key()
+        raiseKeyError("Missing API key")
 
     api_key = ApiKey.get(ApiKey.api_key == input_api_key)
     if api_key is None:
-        invalid_api_key("Invalid API key")
+        raiseKeyError("Invalid API key")
     elif api_key.enabled == 0:
-        invalid_api_key("API key is disabled")
+        raiseKeyError("API key is disabled")
     elif (api_key.valid_until != -1) and (api_key.valid_until < datetime.now()):
-        invalid_api_key(
+        raiseKeyError(
             "API key has expired as of "
             + str(datetime.utcfromtimestamp(api_key.valid_until))
         )
     elif not api_key.has_unlimited_credits() and api_key.credits - COST < 0:
-        invalid_api_key("Not enough credits")
+        raiseKeyError("Not enough credits")
 
     ###  API key is now validated. ###
 

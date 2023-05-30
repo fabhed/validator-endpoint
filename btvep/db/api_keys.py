@@ -5,20 +5,6 @@ from peewee import BooleanField, DateTimeField, IntegerField, TextField, DoesNot
 from tabulate import tabulate
 from .utils import BaseModel
 
-column_order = (
-    "id",
-    "api_key",
-    "api_key_hint",
-    "name",
-    "request_count",
-    "valid_until",
-    "credits",
-    "enabled",
-    "created_at",
-    "updated_at",
-)
-
-
 KEY_LENGTH = 48
 
 

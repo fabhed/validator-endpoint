@@ -134,7 +134,7 @@ $ btvep key create [OPTIONS]
 * `-n, --name TEXT`: The name of the api key.
 * `-v, --valid-until INTEGER`: The unix timestamp when the api key expires. Defaults to -1 which means that the key never expires.  [default: -1]
 * `-c, --credits INTEGER`: The number of credits the api key has. -1 means unlimited.  [default: -1]
-* `-e, --enabled`: Whether the api key is enabled. Disabled keys cannot make requests.  [default: True]
+* `-e, --enable / -d, --disable`: Whether the api key is enabled or not. Disabled keys cannot make requests.  [default: enable]
 * `--help`: Show this message and exit.
 
 ### `btvep key delete`
@@ -181,7 +181,7 @@ or as a date (e.g. '2025-01-01').
 or as an epoch timestamp (e.g. '1735603200')
 Parsing of relative dates will be relative to the current date but ignore the current time of day.
 * `-c, --credits INTEGER`
-* `-e, --enabled`
+* `-e, --enable / -d, --disable`: Enable or disable the api key.
 * `--help`: Show this message and exit.
 
 ### `btvep key list`

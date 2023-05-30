@@ -14,6 +14,7 @@ import btvep
 from btvep.constants import COST, DEFAULT_UID
 from btvep.db.api_keys import ApiKey
 from btvep.db.api_keys import update as update_api_key
+from btvep.db.utils import db, db_state_default, DB_PATH
 from btvep.types import ChatResponse, Message
 from btvep.validator_prompter import ValidatorPrompter
 
@@ -21,6 +22,7 @@ btvep.db.tables.create_all()
 config = btvep.config.Config().load()
 print("Starting http server with btvep config:")
 rich.print_json(config.to_json())
+print("Using SQLite database at", DB_PATH)
 hotkey = bittensor.Keypair.create_from_mnemonic(config.hotkey_mnemonic)
 validator_prompter = ValidatorPrompter(hotkey, DEFAULT_UID)
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")

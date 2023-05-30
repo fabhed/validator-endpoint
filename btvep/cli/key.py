@@ -43,9 +43,9 @@ def create(
     enabled: Annotated[
         bool,
         typer.Option(
-            "--enabled",
-            "-e",
-            help="Whether the api key is enabled. Disabled keys cannot make requests.",
+            "--enable/--disable",
+            "-e/-d",
+            help="Whether the api key is enabled or not. Disabled keys cannot make requests.",
         ),
     ] = True,
 ):
@@ -114,7 +114,15 @@ def edit(
         """,
     ),
     credits: int = typer.Option(None, "--credits", "-c"),
-    enabled: bool = typer.Option(None, "--enabled", "-e"),
+    enabled: Annotated[
+        bool,
+        typer.Option(
+            "--enable/--disable",
+            "-e/-d",
+            show_default=False,
+            help="Enable or disable the api key.",
+        ),
+    ] = None,
 ):
     """
     Edit an api key.

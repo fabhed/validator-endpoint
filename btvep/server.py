@@ -18,8 +18,8 @@ create_all_tables()
 config = Config().load()
 
 # Give info around configuration at server start
-print("Starting http server with btvep config:")
-rich.print_json(config.to_json())
+print("Config:")
+rich.print_json(config.to_json(hide_mnemonic=True))
 print("Using SQLite database at", DB_PATH)
 
 # Initialize the validator prompter for bittensor

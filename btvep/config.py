@@ -27,8 +27,13 @@ class Config(BaseModel):
     redis_url = "redis://localhost"
     global_rate_limits: List[RateLimit] = []
 
-    def to_json(self):
-        return json.dumps(self, default=lambda o: o.dict(), sort_keys=False, indent=4)
+    def to_json(self, hide_mnemonic=False):
+        obj_as_dict = self.dict()
+        if hide_mnemonic:
+            obj_as_dict["hotkey_mnemonic"] = "********"
+        return json.dumps(
+            obj_as_dict, default=lambda o: o.dict(), sort_keys=False, indent=4
+        )
 
     def save(self):
         #  save to a json file

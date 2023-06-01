@@ -1,0 +1,18 @@
+version: "3.8"
+services:
+  validator-endpoint:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - .:/app
+    ports:
+      - 8000:8000
+    depends_on:
+      - redis
+    environment:
+      HOTKEY_MNEMONIC: "my_validators_secret_mnemonic_phrase_here"
+  redis:
+    image: redis:latest
+    ports:
+      - 6379:6379

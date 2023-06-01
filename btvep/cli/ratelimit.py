@@ -22,6 +22,7 @@ def print_ratelimit_table(
 ):
     # Print as a table with index isntead
     table = Table(title=title)
+    table.width = 80
     table.add_column("Index")
     table.add_column("Requests")
     table.add_column("Per x seconds")
@@ -149,21 +150,23 @@ def add(
         if api_key is None:
             raise typer.BadParameter(f"API key {api_key} does not exist")
 
+        # Handle empty rate limits, or load existing json
         if api_key.rate_limits is None:
             api_key.rate_limits = []
         else:
             api_key.rate_limits = json.loads(api_key.rate_limits)
-        api_key.rate_limits.append(rate_limit.dict())
 
+        api_key.rate_limits.append(rate_limit.dict())
+        rate_limits = api_key.rate_limits
         # Save
-        print(api_key.rate_limits)
         api_key.rate_limits = json.dumps(api_key.rate_limits)
         api_key.save()
-        print(f"Added rate limit to api key {api_key.name}")
-        return
-    config.global_rate_limits.append(rate_limit)
-    config.save()
-    print_ratelimit_table("Current global rate limits")
+        print_ratelimit_table(f"Rate limits for API key {api_key.api_key}", rate_limits)
+    else:
+        # No key specified, add to global rate limits
+        config.global_rate_limits.append(rate_limit.dict())
+        config.save()
+        print_ratelimit_table("Current global rate limits", config.global_rate_limits)
 
 
 @app.command()
@@ -174,11 +177,47 @@ def delete(
             help="The index (starts at 0) of the rate limit to delete.",
         ),
     ],
+    api_key: Annotated[
+        str,
+        typer.Option(
+            "--key",
+            "-k",
+            help="The api key (ID or the key itself) to add the rate limit to. If not specified, the rate limit will be removed from the global rate limits.",
+        ),
+    ] = None,
 ):
     """
-    Delete a global rate limit.
+    Delete a rate limit.
     """
     config = Config().load()
-    config.global_rate_limits.pop(index)
-    config.save()
-    print_ratelimit_table("Current global rate limits")
+
+    if api_key:
+        # Delete from the api key
+        api_key = api_keys.get(api_key)
+        if api_key is None:
+            raise typer.BadParameter(f"API key {api_key} does not exist")
+
+        # Handle empty rate limits, or load existing json
+        if api_key.rate_limits is None:
+            api_key.rate_limits = []
+        else:
+            api_key.rate_limits = json.loads(api_key.rate_limits)
+
+        try:
+            api_key.rate_limits.pop(index)
+        except IndexError:
+            raise typer.BadParameter(f"Rate limit with index {index} does not exist.")
+
+        rate_limits = (
+            api_key.rate_limits
+        )  # Save to display before converting to json string
+        api_key.rate_limits = json.dumps(api_key.rate_limits)
+        api_key.save()
+        print_ratelimit_table(f"Rate limits for API key {api_key.api_key}", rate_limits)
+    else:
+        try:
+            config.global_rate_limits.pop(index)
+        except IndexError:
+            raise typer.BadParameter(f"Rate limit with index {index} does not exist.")
+        config.save()
+        print_ratelimit_table("Current global rate limits", config.global_rate_limits)

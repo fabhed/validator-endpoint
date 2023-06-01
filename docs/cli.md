@@ -40,11 +40,12 @@ Rate Limiting Config values available:
 
 
 Example usage:
-    1. Set hotkey_mnemonic:
-       > btvep config set hotkey_mnemonic "my mnemonic"
 
-    2. Get hotkey_mnemonic:
-       > btvep config get hotkey_mnemonic
+1. Set hotkey_mnemonic:
+    `btvep config set hotkey_mnemonic "my_validators_secret_mnemonic_phrase_here"`
+
+2. Get hotkey_mnemonic:
+    `btvep config get hotkey_mnemonic`
 
 **Usage**:
 

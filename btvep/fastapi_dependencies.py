@@ -100,8 +100,6 @@ def get_rate_limits(api_key: str = None) -> list[RateLimiter]:
 
     if not config.rate_limiting_enabled:
         return []
-
-    print("api_key", api_key)
     rate_limits = None
     if api_key is not None:
         rate_limits = json.loads(api_key.rate_limits)

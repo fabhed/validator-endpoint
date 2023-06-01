@@ -56,7 +56,7 @@ curl http://localhost:8000/chat \
 
 ## Requirements
 
-- Python 3.10+
+- Python 3.10
 - If Rate limiting is used [Redis](https://redis.io/docs/getting-started/installation/) is also required
 
 ## API Usage Examples

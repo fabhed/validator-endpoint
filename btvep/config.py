@@ -4,7 +4,7 @@ from typing import List
 from rich.console import Console
 import typer
 
-from btvep.types import RateLimit
+from btvep.btvep_models import RateLimit
 
 CONFIG_PATH = os.path.join(os.path.dirname(__file__), "../config.json")
 CONFIG_PATH = os.path.abspath(CONFIG_PATH)

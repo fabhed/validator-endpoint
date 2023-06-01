@@ -2,7 +2,7 @@ import time
 from typing import List
 from bittensor import Keypair, metagraph, text_prompting
 
-from btvep.types import Message
+from btvep.btvep_models import Message
 
 
 class ValidatorPrompter:

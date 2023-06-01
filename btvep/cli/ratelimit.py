@@ -8,7 +8,7 @@ import typer
 
 from btvep.config import Config
 from btvep.db import api_keys
-from btvep.types import RateLimit
+from btvep.btvep_models import RateLimit
 
 help_text = f"""
     Global & API Key-specific Rate limit settings. Rate limits requires a Redis server.

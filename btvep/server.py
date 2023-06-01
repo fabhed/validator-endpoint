@@ -11,7 +11,7 @@ from btvep.db.request import Request
 from btvep.db.tables import create_all as create_all_tables
 from btvep.db.utils import DB_PATH
 from btvep.fastapi_dependencies import InitializeRateLimiting, VerifyAndLimit, get_db
-from btvep.types import ChatResponse, Message
+from btvep.btvep_models import ChatResponse, Message
 from btvep.validator_prompter import ValidatorPrompter
 
 create_all_tables()

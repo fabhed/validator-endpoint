@@ -236,7 +236,7 @@ $ btvep ratelimit [OPTIONS] COMMAND [ARGS]...
 **Commands**:
 
 * `add`: Add a rate limit.
-* `delete`: Delete a global rate limit.
+* `delete`: Delete a rate limit.
 * `disable`: Disable rate limiting.
 * `enable`: Enable rate limiting.
 * `set-redis-url`: Set the redis url to use for rate limiting.
@@ -264,7 +264,7 @@ $ btvep ratelimit add [OPTIONS] TIMES SECONDS
 
 ### `btvep ratelimit delete`
 
-Delete a global rate limit.
+Delete a rate limit.
 
 **Usage**:
 
@@ -278,6 +278,7 @@ $ btvep ratelimit delete [OPTIONS] INDEX
 
 **Options**:
 
+* `-k, --key TEXT`: The api key (ID or the key itself) to add the rate limit to. If not specified, the rate limit will be removed from the global rate limits.
 * `--help`: Show this message and exit.
 
 ### `btvep ratelimit disable`

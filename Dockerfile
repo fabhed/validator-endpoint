@@ -11,7 +11,7 @@ RUN pip install poetry
 COPY ./pyproject.toml /app/
 
 # Install dependencies without creating a virtual environment inside the container
-RUN poetry config virtualenvs.create false && poetry install --no-dev
+RUN poetry config virtualenvs.create false && poetry install --only main
 
 # Copy the rest of our application
 COPY . /app

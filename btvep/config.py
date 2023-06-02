@@ -99,7 +99,14 @@ class Config(BaseModel):
         # validate mnemonic
         if self.hotkey_mnemonic is None:
             typer.echo(
-                "[red]Missing hotkey mnemonic. Set HOTKEY_MNEMONIC environment variable or set it with: btvep config set hotkey_mnemonic <mnemonic>[/red]"
+                "[red]Missing hotkey mnemonic. Set the HOTKEY_MNEMONIC environment variable or set it with: btvep config set hotkey_mnemonic <mnemonic>[/red]"
+            )
+            raise typer.Exit(1)
+        hotkey_mnemonic = hotkey_mnemonic.split()
+        allowed_word_counts = [12, 15, 18, 21, 24]
+        if len(hotkey_mnemonic) not in allowed_word_counts:
+            typer.echo(
+                f"[red]hotkey_mnemonic has an invalid size. It should be 12, 15, 18, 21 or 24 words[/red]"
             )
             raise typer.Exit(1)
         return self

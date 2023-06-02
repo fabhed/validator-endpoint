@@ -4,6 +4,15 @@ FROM python:3.10-slim-buster
 # Set a directory for our application
 WORKDIR /app
 
+# Install system level dependencies
+RUN apt-get update && apt-get install -y \
+    gcc \
+    g++ \
+    libffi-dev \
+    libssl-dev \
+    build-essential \
+    && rm -rf /var/lib/apt/lists/*
+
 # Install poetry for package management
 RUN pip install poetry
 

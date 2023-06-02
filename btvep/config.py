@@ -27,10 +27,19 @@ class Config(BaseModel):
     redis_url = "redis://localhost"
     global_rate_limits: List[RateLimit] = []
 
-    def to_json(self, hide_mnemonic=False):
+    source_info = {}
+
+    def to_json(self, hide_mnemonic=False, include_source_info=False):
         obj_as_dict = self.dict()
+        obj_as_dict.pop("source_info")
+
         if hide_mnemonic:
             obj_as_dict["hotkey_mnemonic"] = "********"
+
+        if include_source_info:
+            for key in self.source_info:
+                obj_as_dict[key] += f" (from {self.source_info[key]})"
+
         return json.dumps(
             obj_as_dict, default=lambda o: o.dict(), sort_keys=False, indent=4
         )
@@ -42,6 +51,13 @@ class Config(BaseModel):
         return self
 
     def load(self):
+        # load from json file
+        self.load_json()
+        # load from environment variables
+        self.load_env()
+        return self
+
+    def load_json(self):
         # load from a json file and handle error silently
         try:
             with open(CONFIG_PATH, "r") as jsonfile:
@@ -56,6 +72,28 @@ class Config(BaseModel):
                 f"[bold red]Error:[/bold red] {CONFIG_PATH} is not a valid json file. Please fix it or delete it and try again."
             )
             raise typer.Exit(1)
+
+    def load_env(self):
+        # load from environment variables
+        if "HOTKEY_MNEMONIC" in os.environ:
+            self.hotkey_mnemonic = os.getenv("HOTKEY_MNEMONIC")
+            self.source_info["hotkey_mnemonic"] = "environment variable"
+
+        if "RATE_LIMITING_ENABLED" in os.environ:
+            self.rate_limiting_enabled = cast_str_to_bool(
+                os.getenv("RATE_LIMITING_ENABLED")
+            )
+            self.source_info["rate_limiting_enabled"] = "environment variable"
+
+        if "REDIS_URL" in os.environ:
+            self.redis_url = os.getenv("REDIS_URL")
+            self.source_info["redis_url"] = "environment variable"
+
+        if "GLOBAL_RATE_LIMITS" in os.environ:
+            self.global_rate_limits = json.loads(os.getenv("GLOBAL_RATE_LIMITS"))
+            self.source_info["global_rate_limits"] = "environment variable"
+
+        return self
 
     # Print format
     def __str__(self):

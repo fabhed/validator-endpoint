@@ -4,11 +4,13 @@ services:
   redis:
     image: redis:latest
     restart: always
+    container_name: "btvep_redis"
   api:
     build:
       context: .
       dockerfile: Dockerfile
     restart: always
+    container_name: "btvep_api"
     volumes:
       - .:/app
     ports:

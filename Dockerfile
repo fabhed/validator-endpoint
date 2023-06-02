@@ -16,18 +16,16 @@ RUN apt-get update && apt-get install -y \
 # Install poetry for package management
 RUN pip install poetry
 
-# Copy our pyproject.toml file first to use Docker cache efficiently
-COPY ./pyproject.toml /app/
-
 # Set Path for poetry
 ENV PATH="${PATH}:/root/.poetry/bin"
+
+# Copy the rest of our application
+COPY . /app
 
 # Install dependencies without creating a virtual environment inside the container
 RUN poetry config virtualenvs.create false \
     && poetry install
 
-# Copy the rest of our application
-COPY . /app
 
 # Run the application
 CMD ["poetry", "run", "btvep", "start", "--port", "8000"]

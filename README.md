@@ -32,7 +32,7 @@ Allow validators to easily host an API for other services to prompt the Bittenso
 python3 -m pip install https://github.com/ViktorThink/validator-endpoint/raw/main/dist/btvep-0.1.0-py3-none-any.whl
 # Set your hotkey mnemonic (quotes are needed since the mnemonic has spaces in it)
 btvep config set hotkey_mnemonic "my_validators_secret_mnemonic_phrase_here"
-# Create an api key
+# Create an API key
 btvep key create
 # Start the server
 btvep start --port 8000

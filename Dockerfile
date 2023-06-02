@@ -28,4 +28,4 @@ RUN poetry config virtualenvs.create false \
 
 
 # Run the application
-CMD ["poetry", "run", "btvep", "start", "--port", "8000"]
+CMD ["btvep", "start", "--port", "8000"]

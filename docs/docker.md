@@ -26,7 +26,7 @@ You can start the Validator Endpoint container using Docker Compose with the fol
 docker-compose up -d
 ```
 
-By default the `btvep-api` container is accessable on port 8000 your host machine. This can be changed in the docker-compose.yml file as well.
+By default the `btvep_api` container is accessable on port 8000 your host machine. This can be changed in the docker-compose.yml file as well.
 
 ## Running Commands
 
@@ -34,7 +34,7 @@ Since the `btvep` cli is installed in the container, it won't be accessable from
 
 ```bash
 # Start a shell with access to btvep
-docker exec -it btvep-api /bin/bash
+docker exec -it btvep_api /bin/bash
 
 # Run any btvep commands
 btvep --help # available commands

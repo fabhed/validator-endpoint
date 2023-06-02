@@ -95,6 +95,15 @@ class Config(BaseModel):
 
         return self
 
+    def validate(self):
+        # validate mnemonic
+        if self.hotkey_mnemonic is None:
+            typer.echo(
+                "[red]Missing hotkey mnemonic. Set HOTKEY_MNEMONIC environment variable or set it with: btvep config set hotkey_mnemonic <mnemonic>[/red]"
+            )
+            raise typer.Exit(1)
+        return self
+
     # Print format
     def __str__(self):
         # use __dict__

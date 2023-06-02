@@ -38,6 +38,10 @@ btvep key create
 btvep start --port 8000
 ```
 
+As an alternative to the above approach you can also use docker: [Docker Guide](./docs/docker.md)
+
+## Example request
+
 Make a request with the key you just created (Replace $API_KEY)
 
 ```bash

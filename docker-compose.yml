@@ -1,5 +1,10 @@
-version: "3.8"
+version: '3.9'
+
 services:
+  redis:
+    image: redis:latest
+    restart: always
+    container_name: redis
   validator-endpoint:
     build:
       context: .
@@ -8,11 +13,13 @@ services:
       - .:/app
     ports:
       - 8000:8000
+    container_name: api
     depends_on:
       - redis
     environment:
       HOTKEY_MNEMONIC: "my_validators_secret_mnemonic_phrase_here"
-  redis:
-    image: redis:latest
-    ports:
-      - 6379:6379
+
+
+
+
+

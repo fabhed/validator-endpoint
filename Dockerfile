@@ -19,11 +19,15 @@ RUN pip install poetry
 # Copy our pyproject.toml file first to use Docker cache efficiently
 COPY ./pyproject.toml /app/
 
+# Set Path for poetry
+ENV PATH="${PATH}:/root/.poetry/bin"
+
 # Install dependencies without creating a virtual environment inside the container
-RUN poetry config virtualenvs.create false && poetry install --only main
+RUN poetry config virtualenvs.create false \
+    && poetry install
 
 # Copy the rest of our application
 COPY . /app
 
 # Run the application
-CMD ["btvep", "start", "--port", "8000"]
+CMD ["poetry", "run", "btvep", "start", "--port", "8000"]

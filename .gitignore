@@ -5,3 +5,4 @@ btvep.db
 config.json
 .DS_Store
 dump.rdb
+docker-compose.yml

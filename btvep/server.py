@@ -15,7 +15,7 @@ from btvep.btvep_models import ChatResponse, Message
 from btvep.validator_prompter import ValidatorPrompter
 
 create_all_tables()
-config = Config().load()
+config = Config().load().validate()
 
 # Give info around configuration at server start
 print("Config:")

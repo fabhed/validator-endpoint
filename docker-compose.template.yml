@@ -1,0 +1,22 @@
+version: '3.9'
+
+services:
+  redis:
+    image: redis:latest
+    restart: always
+    container_name: "btvep_redis"
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: always
+    container_name: "btvep_api"
+    volumes:
+      - .:/app
+    ports:
+      - 8000:8000
+    depends_on:
+      - redis
+    environment:
+      HOTKEY_MNEMONIC: "my_validators_secret_mnemonic_phrase_here"
+      REDIS_URL: redis://redis:6379

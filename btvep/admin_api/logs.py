@@ -22,7 +22,7 @@ class LogFilters(BaseModel):
     end: Optional[datetime] = None
 
 
-@router.get("/logs", response_model=List[LogEntry])
+@router.get("/", response_model=List[LogEntry])
 async def get_logs(filters: LogFilters = Depends()):
     log_entries_query = (
         Request.select().order_by(Request.timestamp.desc()).limit(filters.lines)

@@ -8,7 +8,7 @@ import typer
 
 from btvep.config import Config
 from btvep.db import api_keys
-from btvep.btvep_models import RateLimit
+from btvep.btvep_models import RateLimitEntry
 
 help_text = f"""
     Global & API Key-specific Rate limit settings. Rate limits requires a Redis server.
@@ -18,7 +18,7 @@ app = typer.Typer(help=help_text)
 
 
 def print_ratelimit_table(
-    title: str, rate_limits: list[RateLimit] = Config().load().global_rate_limits
+    title: str, rate_limits: list[RateLimitEntry] = Config().load().global_rate_limits
 ):
     # Print as a table with index isntead
     table = Table(title=title)
@@ -143,7 +143,7 @@ def add(
     Add a rate limit. Global rate limits do not apply to API keys with their own rate limits.
     """
     config = Config().load()
-    rate_limit = RateLimit(times=times, seconds=seconds)
+    rate_limit = RateLimitEntry(times=times, seconds=seconds)
     if api_key:
         # Add to the api key
         api_key = api_keys.get(api_key)

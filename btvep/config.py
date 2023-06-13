@@ -4,7 +4,7 @@ from typing import List
 from rich.console import Console
 import typer
 
-from btvep.btvep_models import RateLimit
+from btvep.btvep_models import RateLimitEntry
 
 CONFIG_PATH = os.path.join(os.path.dirname(__file__), "../config.json")
 CONFIG_PATH = os.path.abspath(CONFIG_PATH)
@@ -25,7 +25,7 @@ class Config(BaseModel):
     hotkey_mnemonic: str | None = None
     rate_limiting_enabled = False
     redis_url = "redis://localhost"
-    global_rate_limits: List[RateLimit] = []
+    global_rate_limits: List[RateLimitEntry] = []
 
     source_info = {}
 

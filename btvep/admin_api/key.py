@@ -33,9 +33,7 @@ def list_api_keys():
     """
     List all API keys.
     """
-    keys = api_keys.get_all()
-    print(keys)
-    return keys
+    return api_keys.get_all()
 
 
 @router.delete("/{query}")

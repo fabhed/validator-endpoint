@@ -11,13 +11,13 @@ from btvep.db import api_keys
 router = APIRouter()
 
 
-@router.get("/rate-limit/status")
+@router.get("/status")
 async def get_rate_limit_status():
     config = Config().load()
     return {"rate_limiting_enabled": config.rate_limiting_enabled}
 
 
-@router.post("/rate-limit/enable")
+@router.post("/enable")
 async def enable_rate_limiting():
     config = Config().load()
     config.rate_limiting_enabled = True
@@ -25,7 +25,7 @@ async def enable_rate_limiting():
     return {"status": "Rate limiting enabled"}
 
 
-@router.post("/rate-limit/disable")
+@router.post("/disable")
 async def disable_rate_limiting():
     config = Config().load()
     config.rate_limiting_enabled = False
@@ -33,7 +33,7 @@ async def disable_rate_limiting():
     return {"status": "Rate limiting disabled"}
 
 
-@router.get("/rate-limit", response_model=List[RateLimitEntry])
+@router.get("/", response_model=List[RateLimitEntry])
 async def get_rate_limits(api_key: Optional[str] = None):
     config = Config().load()
     if api_key:
@@ -47,7 +47,7 @@ async def get_rate_limits(api_key: Optional[str] = None):
         return config.global_rate_limits
 
 
-@router.post("/rate-limit")
+@router.post("/")
 async def add_rate_limit(rate_limit: RateLimitEntry, api_key: Optional[str] = None):
     config = Config().load()
     if api_key:
@@ -69,7 +69,7 @@ async def add_rate_limit(rate_limit: RateLimitEntry, api_key: Optional[str] = No
     return {"status": "Rate limit added"}
 
 
-@router.delete("/rate-limit")
+@router.delete("/")
 async def delete_rate_limit(index: int, api_key: Optional[str] = None):
     config = Config().load()
     if api_key:

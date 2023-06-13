@@ -13,6 +13,9 @@ from btvep.db.utils import DB_PATH
 from btvep.fastapi_dependencies import InitializeRateLimiting, VerifyAndLimit, get_db
 from btvep.btvep_models import ChatResponse, Message
 from btvep.validator_prompter import ValidatorPrompter
+from btvep.admin_api import (
+    router as admin_router,
+)  # composed router from the admin module
 
 create_all_tables()
 config = Config().load().validate()
@@ -28,6 +31,8 @@ validator_prompter = ValidatorPrompter(hotkey, DEFAULT_UID)
 
 
 app = FastAPI()
+
+app.include_router(admin_router, prefix="/admin", tags=["Admin"])
 
 
 @app.on_event("startup")

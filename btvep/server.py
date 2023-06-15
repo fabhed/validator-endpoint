@@ -4,6 +4,7 @@ from typing import Annotated, List
 import bittensor
 import rich
 from fastapi import Body, Depends, FastAPI, Header, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
 
 from btvep.config import Config
 from btvep.constants import DEFAULT_UID
@@ -33,6 +34,21 @@ validator_prompter = ValidatorPrompter(hotkey, DEFAULT_UID)
 app = FastAPI()
 
 app.include_router(admin_router, prefix="/admin", tags=["Admin"])
+
+# Add CORS middleware
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "*"
+    ],  # Allows all origins. You can change this to allow specific domains.
+    allow_credentials=True,
+    allow_methods=[
+        "*"
+    ],  # Allows all methods. You can change this to allow specific HTTP methods.
+    allow_headers=[
+        "*"
+    ],  # Allows all headers. You can change this to allow specific headers.
+)
 
 
 @app.on_event("startup")

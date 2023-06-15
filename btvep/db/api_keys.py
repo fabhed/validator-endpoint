@@ -40,13 +40,16 @@ class ApiKey(BaseModel):
 
 
 def insert(
-    api_key: str = secrets.token_urlsafe(KEY_LENGTH),
+    api_key: str = None,
     request_count: int = 0,
     valid_until: int = -1,
     credits: int = -1,
     enabled: bool = True,
     name: str = None,
 ):
+    if api_key is None:
+        api_key = secrets.token_urlsafe(KEY_LENGTH)
+
     return ApiKey.create(
         api_key=api_key,
         api_key_hint="..." + api_key[-4:],

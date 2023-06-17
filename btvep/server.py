@@ -33,8 +33,6 @@ validator_prompter = ValidatorPrompter(hotkey, DEFAULT_UID)
 
 app = FastAPI()
 
-app.include_router(admin_router, prefix="/admin", tags=["Admin"])
-
 # Add CORS middleware
 app.add_middleware(
     CORSMiddleware,
@@ -49,6 +47,8 @@ app.add_middleware(
         "*"
     ],  # Allows all headers. You can change this to allow specific headers.
 )
+
+app.include_router(admin_router, prefix="/admin", tags=["Admin"])
 
 
 @app.on_event("startup")

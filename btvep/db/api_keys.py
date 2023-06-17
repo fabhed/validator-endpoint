@@ -1,8 +1,12 @@
 import json
 import secrets
-from datetime import datetime
-from peewee import BooleanField, DateTimeField, IntegerField, TextField, DoesNotExist
+import time
+
+from peewee import BooleanField, DateTimeField, DoesNotExist, IntegerField, TextField
 from tabulate import tabulate
+
+from btvep.models.key import ApiKeyInDB
+
 from .utils import BaseModel
 
 KEY_LENGTH = 48
@@ -18,8 +22,8 @@ class ApiKey(BaseModel):
     credits = IntegerField(default=-1)
     enabled = BooleanField(default=True)
     rate_limits = TextField(null=True)
-    created_at = DateTimeField(default=datetime.now)
-    updated_at = DateTimeField(default=datetime.now)
+    created_at = DateTimeField(default=int(time.time()))
+    updated_at = DateTimeField(default=int(time.time()))
 
     def has_unlimited_credits(self):
         return self.credits == -1
@@ -46,7 +50,7 @@ def insert(
     credits: int = -1,
     enabled: bool = True,
     name: str = None,
-):
+) -> ApiKey:
     if api_key is None:
         api_key = secrets.token_urlsafe(KEY_LENGTH)
 
@@ -77,8 +81,8 @@ def get_by_key(api_key: str) -> ApiKey:
         return None
 
 
-def get_all():
-    return [key for key in ApiKey.select().dicts()]
+def get_all() -> list[ApiKeyInDB]:
+    return [key for key in ApiKey.select().dicts().order_by(ApiKey.id.desc())]
 
 
 def update(
@@ -98,7 +102,7 @@ def update(
         "valid_until": valid_until,
         "credits": credits,
         "enabled": enabled,
-        "updated_at": datetime.now(),
+        "updated_at": int(time.time()),
     }
     update_dict = {k: v for k, v in update_dict.items() if v is not None}
     q = ApiKey.update(update_dict).where(

@@ -20,8 +20,8 @@ class ApiKeyInDB(BaseModel):
     credits: int
     enabled: bool
     rate_limits: Optional[str] = None
-    created_at: datetime
-    updated_at: datetime
+    created_at: int
+    updated_at: int
 
 
 class ApiKeyUpdate(BaseModel):

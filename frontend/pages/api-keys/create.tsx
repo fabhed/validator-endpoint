@@ -1,74 +1,94 @@
+import axios from "axios";
 import {
-  Form,
-  Select,
-  InputNumber,
-  DatePicker,
-  Switch,
-  Slider,
   Button,
-  Rate,
-  Typography,
-  Space,
-  Divider,
+  Form,
   Input,
-  Checkbox,
+  Switch,
+  DatePicker,
+  Typography,
+  notification,
 } from "antd";
-import Link from "next/link";
+import { useState } from "react";
+import { DateTime } from "luxon";
 
-const { Option } = Select;
 const { Title } = Typography;
 
 export default function Home() {
-  const onFinish = (values: any) => {
-    console.log("Success:", values);
+  const [loading, setLoading] = useState(false);
+
+  const onFinish = async (values: any) => {
+    setLoading(true);
+
+    const data = {
+      name: values.name,
+      valid_until: values.valid_until
+        ? DateTime.fromJSDate(values.valid_until).toSeconds()
+        : -1,
+      credits: values.credits || -1,
+      enabled: values.enabled || true,
+    };
+
+    try {
+      const response = await axios.post("/admin/api-keys/", data, {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+
+      notification.success({
+        message: "API Key Created Successfully",
+      });
+    } catch (error) {
+      notification.error({
+        message: "Error",
+        description: "There was an error creating the API Key.",
+      });
+    }
+
+    setLoading(false);
   };
 
-  const onFinishFailed = (errorInfo: any) => {
-    console.log("Failed:", errorInfo);
-  };
   return (
     <>
       <section style={{ textAlign: "center", marginTop: 48, marginBottom: 40 }}>
         <Title level={2} style={{ marginBottom: 0 }}>
-          Create API key
+          Create API Key
         </Title>
         <Form
-          name="basic"
-          labelCol={{ span: 8 }}
-          wrapperCol={{ span: 16 }}
-          style={{ maxWidth: 600 }}
-          initialValues={{ remember: true }}
+          name="create-api-key"
+          layout="vertical"
+          style={{ maxWidth: 600, margin: "auto" }}
           onFinish={onFinish}
-          onFinishFailed={onFinishFailed}
           autoComplete="off"
         >
           <Form.Item
-            label="Username"
-            name="username"
-            rules={[{ required: true, message: "Please input your username!" }]}
+            label="Name"
+            name="name"
+            rules={[
+              {
+                required: true,
+                message: "Please input a name for the API key!",
+              },
+            ]}
           >
             <Input />
           </Form.Item>
 
-          <Form.Item
-            label="Password"
-            name="password"
-            rules={[{ required: true, message: "Please input your password!" }]}
-          >
-            <Input.Password />
+          <Form.Item label="Valid Until" name="valid_until">
+            <DatePicker showTime />
           </Form.Item>
 
-          <Form.Item
-            name="remember"
-            valuePropName="checked"
-            wrapperCol={{ offset: 8, span: 16 }}
-          >
-            <Checkbox>Remember me</Checkbox>
+          <Form.Item label="Credits" name="credits">
+            <Input type="number" />
           </Form.Item>
 
-          <Form.Item wrapperCol={{ offset: 8, span: 16 }}>
-            <Button type="primary" htmlType="submit">
-              Submit
+          <Form.Item label="Enabled" name="enabled" valuePropName="checked">
+            <Switch />
+          </Form.Item>
+
+          <Form.Item>
+            <Button type="primary" htmlType="submit" loading={loading}>
+              Create API Key
             </Button>
           </Form.Item>
         </Form>

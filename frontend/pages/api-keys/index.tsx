@@ -1,81 +1,40 @@
-import React, { useState } from "react";
+import { CopyOutlined, EditOutlined } from "@ant-design/icons";
 import {
-  Table,
-  message,
-  Switch,
-  InputNumber,
-  Input,
   Button,
-  Popconfirm,
-  Space,
+  DatePicker,
   Form,
   FormInstance,
+  Input,
+  InputRef,
+  Popconfirm,
+  Space,
+  Switch,
+  Table,
+  message,
 } from "antd";
+import axios from "axios";
+import dayjs from "dayjs";
+import "dayjs/plugin/utc";
+import { DateTime } from "luxon";
+import React, { useContext, useEffect, useRef, useState } from "react";
 import useSWR, { mutate } from "swr";
 import fetcher from "../../utils/fetcher";
-import axios from "axios";
-import { DateTime } from "luxon";
 
-interface ApiKeyData {
-  id: string;
+interface DataType {
+  key: React.Key;
+  form: FormInstance;
+  id: number;
   name: string;
+  api_key: string;
   api_key_hint: string;
   valid_until: number;
   credits: number;
+  request_count: number;
   enabled: boolean;
   requests: number; // This should be added to your data
 }
-interface EditableCellProps {
-  editing: boolean;
-  dataIndex: string;
-  title: string;
-  inputType: string;
-  record: ApiKeyData;
-  index: number;
-  children: React.ReactNode;
-  form: FormInstance;
-}
 
-// EditableCell component
-const EditableCell: React.FC<EditableCellProps> = ({
-  editing,
-  dataIndex,
-  title,
-  inputType,
-  record,
-  index,
-  children,
-  form,
-  ...restProps
-}) => {
-  let inputNode;
-  if (inputType === "number") {
-    inputNode = <InputNumber />;
-  } else {
-    inputNode = <Input />;
-  }
-
-  return (
-    <td {...restProps}>
-      {editing ? (
-        <Form.Item
-          name={dataIndex}
-          style={{ margin: 0 }}
-          rules={[
-            {
-              required: true,
-              message: `Please Input ${title}!`,
-            },
-          ]}
-        >
-          {inputNode}
-        </Form.Item>
-      ) : (
-        children
-      )}
-    </td>
-  );
-};
+const EditableContext = React.createContext<FormInstance<any> | null>(null);
 
 interface EditableRowProps {
   index: number;
@@ -85,16 +44,171 @@ const EditableRow: React.FC<EditableRowProps> = ({ index, ...props }) => {
   const [form] = Form.useForm();
   return (
     <Form form={form} component={false}>
-      <tr {...props} />
+      <EditableContext.Provider value={form}>
+        <tr {...props} />
+      </EditableContext.Provider>
     </Form>
   );
 };
 
-export default function ViewApiKeys() {
-  const { data, error } = useSWR<ApiKeyData[]>("/admin/api-keys/", fetcher);
-  const [editingKey, setEditingKey] = useState<string>("");
+interface EditableCellProps {
+  title: React.ReactNode;
+  editable: boolean;
+  children: React.ReactNode;
+  dataIndex: keyof DataType;
+  record: DataType;
+}
 
-  const isEditing = (record: ApiKeyData) => record.id === editingKey;
+const EditableCell: React.FC<EditableCellProps> = ({
+  title,
+  editable,
+  children,
+  dataIndex,
+  record,
+  ...restProps
+}) => {
+  const [editing, setEditing] = useState(false);
+  const [hovering, setHovering] = useState(false);
+
+  const [initialValue, setInitialValue] = useState<any>();
+  const inputRef = useRef<InputRef>(null);
+  const form = useContext(EditableContext)!;
+
+  useEffect(() => {
+    if (editing) {
+      inputRef.current!.focus();
+    }
+  }, [editing]);
+
+  const toggleEdit = () => {
+    if (!editing) {
+      let val: any = record[dataIndex];
+      if (dataIndex === "valid_until") {
+        if (val == -1) {
+          val = undefined;
+        } else {
+          val = dayjs.unix(val);
+        }
+      }
+
+      form.setFieldsValue({ [dataIndex]: val });
+      setInitialValue(val);
+    }
+    setEditing(!editing);
+  };
+
+  const save = async () => {
+    try {
+      const values = await form.validateFields();
+      toggleEdit();
+      if (initialValue === values[dataIndex]) return;
+      await axios.patch(`/admin/api-keys/${record.id}/`, values);
+      message.success("Successfully saved changes");
+      mutate("/admin/api-keys/");
+    } catch (err) {
+      message.error("Failed to save changes");
+      console.error(err);
+    }
+  };
+
+  const handleMouseEnter = () => {
+    setHovering(true);
+  };
+
+  const handleMouseLeave = () => {
+    setHovering(false);
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "Escape") {
+      form.setFieldsValue({ [dataIndex]: initialValue });
+      setEditing(false);
+    }
+  };
+
+  let childNode = children;
+
+  if (editable) {
+    childNode = editing ? (
+      <div style={{ display: "flex", gap: 5 }}>
+        <Form.Item
+          style={{ margin: 0, flexGrow: 1 }}
+          name={dataIndex}
+          rules={[
+            {
+              required: true,
+              message: `${title} is required.`,
+            },
+          ]}
+        >
+          {dataIndex === "valid_until" ? (
+            <DatePicker
+              showTime
+              style={{ minWidth: 200 }}
+              ref={inputRef as any}
+              format="YYYY-MM-DD HH:mm"
+              onBlur={save}
+              onChange={(date) => {
+                if (date) {
+                  form.setFieldsValue({
+                    [dataIndex]: date,
+                  });
+                } else {
+                  form.setFieldsValue({
+                    [dataIndex]: -1,
+                  });
+                }
+                save();
+              }}
+              onKeyDown={handleKeyDown}
+              autoFocus
+            />
+          ) : (
+            <Input
+              style={{ minWidth: 200 }}
+              ref={inputRef}
+              onPressEnter={save}
+              onBlur={save}
+              onKeyDown={handleKeyDown}
+            />
+          )}
+        </Form.Item>
+      </div>
+    ) : (
+      <div
+        className="editable-cell-value-wrap"
+        style={{ paddingRight: 24, display: "flex", alignItems: "center" }}
+      >
+        <span style={{ flexGrow: 1 }}>{children}</span>
+        {
+          <EditOutlined
+            style={{
+              color: "#1890ff",
+              fontSize: "18px",
+              cursor: "pointer",
+              opacity: hovering ? 1 : 0,
+              transition: "opacity 0.3s",
+            }}
+            onClick={toggleEdit}
+          />
+        }
+      </div>
+    );
+  }
+
+  return (
+    <td
+      {...restProps}
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
+    >
+      {childNode}
+    </td>
+  );
+};
+
+export default function ViewApiKeys() {
+  const { data, error } = useSWR<DataType[]>("/admin/api-keys/", fetcher);
 
   if (error) {
     message.error("An error occurred while fetching the data.");
@@ -102,7 +216,7 @@ export default function ViewApiKeys() {
   }
   if (!data) return <div>Loading...</div>;
 
-  const handleSwitchChange = async (record: ApiKeyData, checked: boolean) => {
+  const handleSwitchChange = async (record: DataType, checked: boolean) => {
     try {
       await axios.patch(`/admin/api-keys/${record.id}/`, { enabled: checked });
       message.success("Status updated successfully");
@@ -112,7 +226,7 @@ export default function ViewApiKeys() {
     }
   };
 
-  const handleDelete = async (record: ApiKeyData) => {
+  const handleDelete = async (record: DataType) => {
     try {
       await axios.delete(`/admin/api-keys/${record.id}`);
       message.success("API Key deleted.");
@@ -122,34 +236,53 @@ export default function ViewApiKeys() {
     }
   };
 
-  const save = async (form: FormInstance<any>, id: string) => {
-    try {
-      const row = await form.validateFields();
-      await axios.patch(`/admin/api-keys/${id}/`, row);
-      message.success("Successfully saved changes");
-      setEditingKey("");
-      mutate("/admin/api-keys/");
-    } catch (err) {
-      message.error("Failed to save changes");
-    }
-  };
-
   const columns = [
     {
       title: "ID",
       dataIndex: "id",
       key: "id",
+      sorter: (a: DataType, b: DataType) => a.id - b.id,
     },
     {
       title: "Name",
       dataIndex: "name",
       key: "name",
       editable: true,
+      sorter: (a: DataType, b: DataType) => a.name.localeCompare(b.name),
     },
     {
-      title: "API Key Hint",
-      dataIndex: "api_key_hint",
-      key: "api_key_hint",
+      title: "API Key",
+      dataIndex: "api_key",
+      key: "api_key",
+      render: (text: string) => {
+        const handleCopy = () => {
+          navigator.clipboard
+            .writeText(text)
+            .then(() => message.success("API Key copied to clipboard"))
+            .catch(() => message.error("Failed to copy API Key"));
+        };
+
+        return (
+          <div style={{ display: "flex", alignItems: "center" }}>
+            <span
+              style={{
+                maxWidth: "100px",
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+                whiteSpace: "nowrap",
+              }}
+            >
+              {text}
+            </span>
+            <Button
+              type="link"
+              size="large"
+              icon={<CopyOutlined />}
+              onClick={handleCopy}
+            />
+          </div>
+        );
+      },
     },
     {
       title: "Valid Until",
@@ -158,69 +291,58 @@ export default function ViewApiKeys() {
       render: (text: number) =>
         text === -1
           ? "No Expiration"
-          : DateTime.fromSeconds(text).toLocaleString(DateTime.DATETIME_MED),
+          : DateTime.fromSeconds(text).toFormat("yyyy-MM-dd HH:mm"),
       editable: true,
+      sorter: (a: DataType, b: DataType) => a.valid_until - b.valid_until,
     },
     {
       title: "Credits",
       dataIndex: "credits",
       key: "credits",
-      render: (text: number) => (text === -1 ? "Unlimited" : text),
+      render: (text: number) => (text === -1 ? "-1 (Unlimited)" : text),
       editable: true,
+      filters: [
+        { text: "Unlimited", value: -1 },
+        { text: "Limited", value: 0 },
+      ],
+      onFilter: (value: any, record: DataType) => {
+        if (value === -1) {
+          return record.credits === -1;
+        } else {
+          return record.credits !== -1;
+        }
+      },
+      sorter: (a: DataType, b: DataType) => a.credits - b.credits,
     },
     {
       title: "Enabled",
       dataIndex: "enabled",
       key: "enabled",
-      render: (text: boolean, record: ApiKeyData) => (
+      render: (enabled: boolean, record: DataType) => (
         <Switch
-          checked={text}
+          checked={enabled}
           onChange={(checked: boolean) => handleSwitchChange(record, checked)}
         />
       ),
+      filters: [
+        { text: "Enabled", value: true },
+        { text: "Disabled", value: false },
+      ],
+      onFilter: (value: any, record: DataType) => record.enabled === value,
     },
 
     {
       title: "Requests",
-      dataIndex: "requests",
+      dataIndex: "request_count",
       key: "requests",
+      sorter: (a: DataType, b: DataType) => a.request_count - b.request_count,
     },
     {
       title: "Operation",
       dataIndex: "operation",
-      render: (_: unknown, record: ApiKeyData, index: number) => {
-        const editable = isEditing(record);
-        const cancel = () => {
-          setEditingKey(""); // Exit the editing mode
-        };
-        return editable ? (
+      render: (_: unknown, record: DataType, index: number) => {
+        return (
           <Space size="middle">
-            <Form.Item shouldUpdate>
-              {() => (
-                <>
-                  <a
-                    onClick={async () => {
-                      const form = formRef.current;
-                      if (form) {
-                        await save(form, record.id);
-                      }
-                    }}
-                  >
-                    Save
-                  </a>
-                  <a onClick={cancel}>Cancel</a>
-                </>
-              )}
-            </Form.Item>
-          </Space>
-        ) : (
-          <Space size="middle">
-            <a
-              disabled={editingKey !== ""}
-              onClick={() => setEditingKey(record.id)}
-            >
-              Edit
-            </a>
             <Popconfirm
               title="Sure to delete?"
               onConfirm={() => handleDelete(record)}
@@ -239,16 +361,15 @@ export default function ViewApiKeys() {
     }
     return {
       ...col,
-      onCell: (record: ApiKeyData) => ({
+      onCell: (record: DataType) => ({
         record,
-        form,
         inputType:
           col.dataIndex === "credits" || col.dataIndex === "valid_until"
             ? "number"
             : "text",
         dataIndex: col.dataIndex,
         title: col.title,
-        editing: isEditing(record),
+        editable: col.editable,
       }),
     };
   });
@@ -270,6 +391,7 @@ export default function ViewApiKeys() {
         Create New
       </Button>
       <Table
+        rowClassName={() => "editable-row"}
         components={{
           body: {
             cell: EditableCell,

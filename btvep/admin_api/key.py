@@ -1,13 +1,12 @@
-from fastapi import APIRouter, HTTPException, Body
-from typing import List, Optional
 from datetime import datetime
+from typing import List, Optional
+
 import dateparser
+from fastapi import APIRouter, Body, HTTPException
+from playhouse.shortcuts import model_to_dict
 
 from btvep.db import api_keys
-from btvep.models.key import (
-    ApiKeyInDB,
-)
-
+from btvep.models.key import ApiKeyInDB
 
 router = APIRouter()
 
@@ -25,7 +24,7 @@ def create_api_key(
     api_key = api_keys.insert(
         name=name, valid_until=valid_until, credits=credits, enabled=enabled
     )
-    return api_key
+    return model_to_dict(api_key)
 
 
 @router.get("/", response_model=List[ApiKeyInDB])

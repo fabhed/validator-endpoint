@@ -72,7 +72,9 @@ def authenticate_api_key(input_api_key: str = Depends(oauth2_scheme)) -> ApiKey:
         raiseKeyError("Invalid API key")
     elif api_key.enabled == 0:
         raiseKeyError("API key is disabled")
-    elif (api_key.valid_until != -1) and (api_key.valid_until < datetime.now()):
+    elif (api_key.valid_until != -1) and (
+        api_key.valid_until < datetime.now().timestamp()
+    ):
         raiseKeyError(
             "API key has expired as of "
             + str(datetime.utcfromtimestamp(api_key.valid_until))

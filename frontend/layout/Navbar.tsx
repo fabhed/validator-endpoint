@@ -2,6 +2,9 @@ import { MenuFoldOutlined, MenuUnfoldOutlined } from "@ant-design/icons";
 import { Button, Layout, theme } from "antd";
 import "antd/dist/reset.css";
 const { Header } = Layout;
+import { Typography } from "antd";
+import { relative } from "path";
+const { Title } = Typography;
 
 export default function Navbar({ siderCollapsed, setCollapsed }) {
   const {
@@ -9,7 +12,6 @@ export default function Navbar({ siderCollapsed, setCollapsed }) {
   } = theme.useToken();
   return (
     <Header
-      className="flex flex-row"
       style={{
         padding: 0,
         background: colorBgContainer,
@@ -32,6 +34,7 @@ export default function Navbar({ siderCollapsed, setCollapsed }) {
           display: "flex",
           justifyContent: "center",
           width: "100%",
+          height: "100%",
         }}
       >
         <div

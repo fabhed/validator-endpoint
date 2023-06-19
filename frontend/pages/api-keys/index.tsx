@@ -1,4 +1,8 @@
-import { CopyOutlined, EditOutlined } from "@ant-design/icons";
+import {
+  CopyOutlined,
+  EditOutlined,
+  QuestionCircleOutlined,
+} from "@ant-design/icons";
 import {
   Button,
   DatePicker,
@@ -6,10 +10,9 @@ import {
   FormInstance,
   Input,
   InputRef,
-  Popconfirm,
-  Space,
   Switch,
   Table,
+  Tooltip,
   message,
 } from "antd";
 import axios from "axios";
@@ -18,8 +21,8 @@ import "dayjs/plugin/utc";
 import { DateTime } from "luxon";
 import React, { useContext, useEffect, useRef, useState } from "react";
 import useSWR, { mutate } from "swr";
-import fetcher from "../../utils/fetcher";
 import { APIKeyOperations } from "../../components/APIKeyOperations";
+import fetcher from "../../utils/fetcher";
 
 interface DataType {
   key: React.Key;
@@ -297,10 +300,16 @@ export default function ViewApiKeys() {
       sorter: (a: DataType, b: DataType) => a.valid_until - b.valid_until,
     },
     {
-      title: "Credits",
+      title: (
+        <span>
+          Credits{" "}
+          <Tooltip title="A value of -1 represents unlimited credits.">
+            <QuestionCircleOutlined />
+          </Tooltip>
+        </span>
+      ),
       dataIndex: "credits",
       key: "credits",
-      render: (text: number) => (text === -1 ? "-1 (Unlimited)" : text),
       editable: true,
       filters: [
         { text: "Unlimited", value: -1 },

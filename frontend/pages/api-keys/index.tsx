@@ -35,7 +35,7 @@ interface DataType {
   credits: number;
   request_count: number;
   enabled: boolean;
-  requests: number; // This should be added to your data
+  requests: number;
 }
 
 const EditableContext = React.createContext<FormInstance<any> | null>(null);
@@ -407,6 +407,7 @@ export default function ViewApiKeys() {
           },
         }}
         scroll={{ x: "max-content" }}
+        // @ts-ignore
         columns={mergedColumns}
         dataSource={data}
         rowKey="id"

@@ -8,10 +8,9 @@ router = APIRouter()
 
 
 class LogEntry(BaseModel):
-    api_key_id: Optional[str]
+    api_key: Optional[str]
     timestamp: datetime
     responder_hotkey: Optional[str]
-    # Add other fields of the Log Entry here
 
 
 class LogFilters(BaseModel):

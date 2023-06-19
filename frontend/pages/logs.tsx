@@ -139,7 +139,14 @@ export default function Logs() {
 
   return (
     <div>
-      <Table columns={columns} dataSource={logsData} rowKey="timestamp" />
+      <Table
+        columns={columns}
+        dataSource={logsData}
+        rowKey="timestamp"
+        scroll={{
+          x: true,
+        }}
+      />
     </div>
   );
 }

@@ -90,14 +90,7 @@ export default function RootLayout({ children }) {
             overflow: "initial",
           }}
         >
-          <div
-            style={{
-              padding: 24,
-              background: colorBgContainer,
-            }}
-          >
-            {children}
-          </div>
+          {children}
         </Content>
         <Footer style={{ textAlign: "center" }}>
           {site_name}

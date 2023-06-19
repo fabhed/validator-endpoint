@@ -374,7 +374,7 @@ export default function ViewApiKeys() {
   });
 
   return (
-    <div style={{ padding: "2em" }}>
+    <div>
       <Button
         onClick={async () => {
           try {
@@ -397,6 +397,7 @@ export default function ViewApiKeys() {
             row: EditableRow,
           },
         }}
+        scroll={{ x: "max-content" }}
         columns={mergedColumns}
         dataSource={data}
         rowKey="id"

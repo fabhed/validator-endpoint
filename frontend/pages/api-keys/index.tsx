@@ -141,7 +141,9 @@ const EditableCell: React.FC<EditableCellProps> = ({
           rules={[
             {
               required: true,
-              message: `${title} is required.`,
+              message: `${
+                typeof title === "string" ? title : "The field"
+              } is required.`,
             },
           ]}
         >
@@ -406,7 +408,9 @@ export default function ViewApiKeys() {
             row: EditableRow,
           },
         }}
-        scroll={{ x: "max-content" }}
+        scroll={{
+          x: true,
+        }}
         // @ts-ignore
         columns={mergedColumns}
         dataSource={data}

@@ -2,7 +2,7 @@ import { ExclamationCircleOutlined } from "@ant-design/icons";
 import { Dropdown, Modal, Typography, message } from "antd";
 import { generateCurlCommand } from "../utils/api-keys";
 
-const { Text } = Typography;
+const { Paragraph } = Typography;
 const items = [{ key: "copyCurl", label: "Copy curl example" }];
 
 export const APIKeyOperations = ({
@@ -30,10 +30,10 @@ export const APIKeyOperations = ({
       icon: <ExclamationCircleOutlined />,
       content: (
         <>
-          <Text ellipsis code>
-            {apiKey}
-          </Text>
-          <p>This action cannot be undone.</p>
+          <Paragraph>This action cannot be undone.</Paragraph>
+          <Paragraph>
+            <pre>{apiKey}</pre>
+          </Paragraph>
         </>
       ),
       okText: "Yes",

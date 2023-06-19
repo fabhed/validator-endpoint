@@ -1,4 +1,5 @@
 import datetime
+import time
 from peewee import *
 from tabulate import tabulate
 
@@ -10,7 +11,7 @@ from .utils import db
 class Request(Model):
     id = AutoField()
     api_key = ForeignKeyField(ApiKey, field="api_key", backref="requests")
-    timestamp = TimestampField(default=datetime.datetime.now)
+    timestamp = IntegerField(default=int(time.time()))
     prompt = TextField()
     response = TextField()
     responder_hotkey = TextField()

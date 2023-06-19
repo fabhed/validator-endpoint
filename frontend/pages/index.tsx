@@ -1,19 +1,5 @@
-import {
-  Form,
-  Select,
-  InputNumber,
-  DatePicker,
-  Switch,
-  Slider,
-  Button,
-  Rate,
-  Typography,
-  Space,
-  Divider,
-} from "antd";
-import Link from "next/link";
+import { Select, Typography } from "antd";
 
-const { Option } = Select;
 const { Title } = Typography;
 
 export default function Home() {
@@ -23,7 +9,6 @@ export default function Home() {
         <Title level={2} style={{ marginBottom: 0 }}>
           Validator Endpoint
         </Title>
-        <Link href="/api-keys/create">Create API key</Link>
       </section>
     </>
   );

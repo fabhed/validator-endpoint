@@ -19,6 +19,7 @@ import { DateTime } from "luxon";
 import React, { useContext, useEffect, useRef, useState } from "react";
 import useSWR, { mutate } from "swr";
 import fetcher from "../../utils/fetcher";
+import { APIKeyOperations } from "../../components/APIKeyOperations";
 
 interface DataType {
   key: React.Key;
@@ -342,14 +343,12 @@ export default function ViewApiKeys() {
       dataIndex: "operation",
       render: (_: unknown, record: DataType, index: number) => {
         return (
-          <Space size="middle">
-            <Popconfirm
-              title="Sure to delete?"
-              onConfirm={() => handleDelete(record)}
-            >
-              <a>Delete</a>
-            </Popconfirm>
-          </Space>
+          <APIKeyOperations
+            prompt="Say this is a test!"
+            apiKey={record.api_key}
+            url="http://localhost:8000" // TODO: Make this dynamic
+            onDelete={() => handleDelete(record)}
+          />
         );
       },
     },

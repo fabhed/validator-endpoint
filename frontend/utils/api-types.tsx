@@ -60,9 +60,9 @@ interface HTTPValidationError {
 }
 
 // Log Entry
-interface LogEntry {
+interface RequestLogEntry {
   api_key: string;
-  timestamp: string;
+  timestamp: number;
   responder_hotkey: string;
 }
 

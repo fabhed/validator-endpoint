@@ -7,7 +7,7 @@ from fastapi import Body, Depends, FastAPI, Header, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 
 from btvep.config import Config
-from btvep.constants import DEFAULT_UID
+from btvep.constants import DEFAULT_UID, DEFAULT_NETUID
 from btvep.db.request import Request
 from btvep.db.tables import create_all as create_all_tables
 from btvep.db.utils import DB_PATH
@@ -28,7 +28,7 @@ print("Using SQLite database at", DB_PATH)
 
 # Initialize the validator prompter for bittensor
 hotkey = bittensor.Keypair.create_from_mnemonic(config.hotkey_mnemonic)
-validator_prompter = ValidatorPrompter(hotkey, DEFAULT_UID)
+validator_prompter = ValidatorPrompter(hotkey, DEFAULT_NETUID)
 
 
 app = FastAPI()

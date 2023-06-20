@@ -1,27 +1,35 @@
-import { ExclamationCircleOutlined } from "@ant-design/icons";
-import { Dropdown, Modal, Typography, message } from "antd";
+import React, { useState } from "react";
+import { ExclamationCircleOutlined, CopyOutlined } from "@ant-design/icons";
+import { Dropdown, Modal, Typography, message, Input, Button } from "antd";
 import { generateCurlCommand } from "../utils/api-keys";
 
 const { Paragraph } = Typography;
-const items = [{ key: "copyCurl", label: "Copy curl example" }];
 
 export const APIKeyOperations = ({
-  prompt,
+  prompt: initialPrompt,
   apiKey,
   url,
   onDelete,
-}: {
-  prompt: string;
-  apiKey: string;
-  url: string;
-  onDelete: () => void;
 }) => {
+  const [modalVisible, setModalVisible] = useState(false);
+  const [prompt, setPrompt] = useState(initialPrompt);
+  const [uid, setUid] = useState("");
+
   const handleMenuClick = ({ key }) => {
     if (key === "copyCurl") {
-      const curlCommand = generateCurlCommand({ prompt, apiKey, url });
-      navigator.clipboard.writeText(curlCommand);
-      message.success("Curl command copied to clipboard!");
+      setModalVisible(true);
     }
+  };
+
+  const handleCopyCurl = () => {
+    const curlCommand = generateCurlCommand({
+      prompt,
+      apiKey,
+      url,
+      uid: uid ? Number(uid) : undefined,
+    });
+    navigator.clipboard.writeText(curlCommand);
+    message.success("Curl command copied to clipboard!");
   };
 
   const showDeleteConfirm = (actuallyDelete) => {
@@ -46,11 +54,49 @@ export const APIKeyOperations = ({
   };
 
   return (
-    <Dropdown.Button
-      menu={{ items, onClick: handleMenuClick }}
-      onClick={() => showDeleteConfirm(onDelete)}
-    >
-      Delete
-    </Dropdown.Button>
+    <>
+      <Dropdown.Button
+        menu={{
+          items: [{ key: "copyCurl", label: "Create example request" }],
+          onClick: handleMenuClick,
+        }}
+        onClick={() => showDeleteConfirm(onDelete)}
+      >
+        Delete
+      </Dropdown.Button>
+      <Modal
+        title="Make a Request"
+        visible={modalVisible}
+        onCancel={() => setModalVisible(false)}
+        footer={[
+          <Button key="copy" type="primary" onClick={handleCopyCurl}>
+            <CopyOutlined /> Copy
+          </Button>,
+        ]}
+      >
+        <Input
+          placeholder="Prompt"
+          value={prompt}
+          onChange={(e) => setPrompt(e.target.value)}
+          style={{ marginBottom: 10 }}
+        />
+        <Input
+          placeholder="UID (optional)"
+          value={uid}
+          onChange={(e) => setUid(e.target.value)}
+          style={{ marginBottom: 10 }}
+        />
+        <Paragraph>
+          <pre>
+            {generateCurlCommand({
+              prompt,
+              apiKey,
+              url,
+              uid: uid ? Number(uid) : undefined,
+            })}
+          </pre>
+        </Paragraph>
+      </Modal>
+    </>
   );
 };

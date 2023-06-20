@@ -81,13 +81,14 @@ export default function RootLayout({ children }) {
       </Sider>
       <Layout
         className="site-layout"
-        style={{ marginLeft: collapsed ? 80 : 200 }}
+        style={{ marginLeft: collapsed ? 80 : 200, minHeight: "100vh" }}
       >
         <Navbar siderCollapsed={collapsed} setCollapsed={setCollapsed}></Navbar>
         <Content
           style={{
             margin: "24px 16px 0",
             overflow: "initial",
+            flexGrow: 1,
           }}
         >
           {children}

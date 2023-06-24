@@ -1,23 +1,24 @@
 import asyncio
+import json
 from typing import Annotated, List
 
 import bittensor
 import rich
+import uvicorn
 from fastapi import Body, Depends, FastAPI, Header, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-import uvicorn
 
+from btvep.admin_api import (
+    router as admin_router,
+)  # composed router from the admin module
+from btvep.btvep_models import ChatResponse, Message
 from btvep.config import Config
-from btvep.constants import DEFAULT_UID, DEFAULT_NETUID
+from btvep.constants import DEFAULT_NETUID, DEFAULT_UID
 from btvep.db.request import Request
 from btvep.db.tables import create_all as create_all_tables
 from btvep.db.utils import DB_PATH
 from btvep.fastapi_dependencies import InitializeRateLimiting, VerifyAndLimit, get_db
-from btvep.btvep_models import ChatResponse, Message
 from btvep.validator_prompter import ValidatorPrompter
-from btvep.admin_api import (
-    router as admin_router,
-)  # composed router from the admin module
 
 create_all_tables()
 config = Config().load().validate()
@@ -76,7 +77,7 @@ def chat(
     response = validator_prompter.query_network(messages=messages, uid=uid)
     if response.is_success:
         Request.create(
-            prompt=[message.json() for message in messages],
+            prompt=json.dumps([message.dict() for message in messages]),
             response=response.completion,
             api_key=authorization.split(" ")[1],
             responder_hotkey=response.dest_hotkey,

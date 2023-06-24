@@ -1,6 +1,8 @@
 import json
+from typing import List
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
+from btvep.btvep_models import RateLimitEntry
 from btvep.config import Config, cast_str_to_bool
 
 router = APIRouter()
@@ -8,7 +10,7 @@ router = APIRouter()
 
 class ConfigValue(BaseModel):
     key: str
-    value: str
+    value: str | List[RateLimitEntry]
 
 
 @router.get("/")
@@ -36,6 +38,10 @@ async def set_config_value(config_value: ConfigValue):
         if isinstance(config.__dict__[key], bool):
             value = cast_str_to_bool(value)
         config.__dict__[key] = value
+        try:
+            config.validate(cli_mode=False)
+        except ValueError as e:
+            raise HTTPException(status_code=400, detail=str(e))
         config.save()
         return {key: config.load().__dict__[key]}
     else:

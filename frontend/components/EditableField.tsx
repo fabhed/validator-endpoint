@@ -4,6 +4,7 @@ import {
   EditOutlined,
   CloseOutlined,
   LoadingOutlined,
+  SaveOutlined,
 } from "@ant-design/icons";
 import { useToken } from "antd/es/theme/internal";
 
@@ -85,7 +86,7 @@ export const EditableField: React.FC<EditableFieldProps> = ({
         <Button onClick={() => save()} disabled={loading}>
           <Space>
             <span>Save</span>
-            {loading ? <LoadingOutlined /> : <EditOutlined />}
+            {loading ? <LoadingOutlined /> : <SaveOutlined />}
           </Space>
         </Button>
         <Button onClick={handleCancel} disabled={loading}>

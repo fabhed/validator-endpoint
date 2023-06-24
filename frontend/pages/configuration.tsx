@@ -13,6 +13,7 @@ import useSWR, { mutate } from "swr";
 import axios from "axios";
 import fetcher from "../utils/fetcher";
 import { getErrorMessageFromResponse } from "../utils/api-handlers";
+import { EditableField } from "../components/EditableField";
 
 const { Title } = Typography;
 
@@ -39,26 +40,22 @@ export default function Configuration() {
   );
 
   const [configValues, setConfigValues] = useState<Configuration>({});
-  console.log(configValues);
   const [editing, setEditing] = useState(false);
 
   useEffect(() => {
-    console.log(configData);
     setConfigValues(configData || {});
   }, [configData]);
 
   const handleUpdateConfigValue = async (key, value) => {
     try {
       await axios.post(apiUrl, { key, value });
-
       message.success(`Configuration for ${key} updated successfully.`);
       mutate(apiUrl); // Re-fetch the data
     } catch (error: any) {
-      debugger;
-
       message.error(
         `Couldn't save ${key}: ${getErrorMessageFromResponse(error)}`
       );
+      throw error;
     }
   };
 
@@ -81,85 +78,65 @@ export default function Configuration() {
   return (
     <>
       <section style={{ marginBottom: 40 }}>
-        {/* <pre>{JSON.stringify(configValues, null, 2)}</pre> */}
         <Space size={"large"} direction="vertical" style={{ display: "flex" }}>
-          <Title>
-            <div style={{ display: "flex", alignItems: "center", gap: 15 }}>
-              Configuration
-              <Button
-                onClick={() => setEditing(!editing)}
-                style={{ display: "inline-block" }}
-              >
-                {editing ? "Cancel Editing" : "Edit Config"}
-              </Button>
-            </div>
-          </Title>
+          <Title>Configuration</Title>
           {configError && <div>Error loading configuration</div>}
           <Form layout="vertical">
             <Form.Item label="Hotkey Mnemonic">
-              <Input
-                value={configValues.hotkey_mnemonic}
-                disabled={!editing}
-                onChange={(e) =>
-                  setConfigValues({
-                    ...configValues,
-                    hotkey_mnemonic: e.target.value,
-                  })
-                }
+              <EditableField
+                initialValue={configValues.hotkey_mnemonic}
+                name="hotkey_mnemonic"
+                onUpdate={(v) => handleUpdateConfigValue("hotkey_mnemonic", v)}
+                displayValueAsInput
+                onChange={() => {}}
+                onCancel={() => {}}
               />
             </Form.Item>
-
             <Form.Item label="Hotkey Public Key">
-              <Input
-                value={configValues.hotkey_pubkey}
-                disabled={!editing}
-                onChange={(e) =>
-                  setConfigValues({
-                    ...configValues,
-                    hotkey_pubkey: e.target.value,
-                  })
-                }
+              <EditableField
+                initialValue={configValues.hotkey_pubkey}
+                name="hotkey_pubkey"
+                onUpdate={(v) => handleUpdateConfigValue("hotkey_pubkey", v)}
+                displayValueAsInput
+                onChange={() => {}}
+                onCancel={() => {}}
               />
             </Form.Item>
-
             <Form.Item label="Validator Auth Strategy">
-              <Input
-                value={configValues.validator_auth_strategy}
-                disabled={!editing}
-                onChange={(e) =>
-                  setConfigValues({
-                    ...configValues,
-                    validator_auth_strategy: e.target.value,
-                  })
+              <EditableField
+                initialValue={configValues.validator_auth_strategy}
+                name="validator_auth_strategy"
+                onUpdate={(v) =>
+                  handleUpdateConfigValue("validator_auth_strategy", v)
                 }
+                displayValueAsInput
+                onChange={() => {}}
+                onCancel={() => {}}
               />
             </Form.Item>
             <Form.Item label="Redis URL">
-              <Input
-                value={configValues.redis_url}
-                disabled={!editing}
-                onChange={(e) =>
-                  setConfigValues({
-                    ...configValues,
-                    redis_url: e.target.value,
-                  })
-                }
+              <EditableField
+                initialValue={configValues.redis_url}
+                name="redis_url"
+                onUpdate={(v) => handleUpdateConfigValue("redis_url", v)}
+                displayValueAsInput
+                onChange={() => {}}
+                onCancel={() => {}}
               />
             </Form.Item>
-
             <Title level={3}>
               <Space>
                 Global Rate Limits
                 <Switch
                   checked={configValues.rate_limiting_enabled}
                   title="Rate Limiting Enabled"
-                  disabled={!editing}
-                  onChange={(checked) =>
+                  onChange={(checked) => {
                     setConfigValues({
                       ...configValues,
                       rate_limiting_enabled: checked,
-                    })
-                  }
+                    });
+                    handleUpdateConfigValue("rate_limiting_enabled", checked);
+                  }}
                 />
                 <Button
                   type="dashed"
@@ -217,18 +194,33 @@ export default function Configuration() {
                 )
               )}
             </Space>
-
-            {editing && (
+            {editing ? (
               <Form.Item>
                 <Button
                   type="primary"
-                  onClick={() =>
-                    Object.keys(configValues).forEach((key) =>
-                      handleUpdateConfigValue(key, configValues[key])
-                    )
-                  }
+                  onClick={async () => {
+                    // Save the rate limits
+                    await handleUpdateConfigValue(
+                      "global_rate_limits",
+                      configValues.global_rate_limits
+                    );
+                    setEditing(false);
+                  }}
                 >
-                  Update Configuration
+                  Save Rate Limits
+                </Button>
+              </Form.Item>
+            ) : (
+              <Form.Item>
+                <Button
+                  type={editing ? "primary" : "default"}
+                  onClick={() => {
+                    if (editing) {
+                    }
+                    setEditing(!editing);
+                  }}
+                >
+                  {editing ? "Save" : "Edit Rate Limits"}
                 </Button>
               </Form.Item>
             )}

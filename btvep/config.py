@@ -50,11 +50,13 @@ class Config(BaseModel):
             jsonfile.write(self.to_json())
         return self
 
-    def load(self):
+    def load(self, hide_mnemonic=False):
         # load from json file
         self.load_json()
         # load from environment variables
         self.load_env()
+        if hide_mnemonic:
+            self.__dict__["hotkey_mnemonic"] = "********"
         return self
 
     def load_json(self):

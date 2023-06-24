@@ -15,13 +15,13 @@ class ConfigValue(BaseModel):
 
 @router.get("/")
 async def get_config():
-    config = Config().to_json()
-    return json.loads(config)
+    config = Config().load(hide_mnemonic=True)
+    return json.loads(config.to_json())
 
 
 @router.get("/{key}")
 async def get_config_value(key: str):
-    config = Config().load()
+    config = Config().load(hide_mnemonic=True)
     if key in config.__dict__:
         return {key: config.__dict__[key]}
     else:

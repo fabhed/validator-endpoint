@@ -5,6 +5,7 @@ import { SearchOutlined } from "@ant-design/icons";
 import useSWR from "swr";
 import fetcher from "../utils/fetcher";
 import { FilterDropdownProps } from "antd/es/table/interface";
+import { DateTime } from "luxon";
 
 export default function Logs() {
   const { data, error } = useSWR("/admin/logs/", fetcher);
@@ -112,7 +113,14 @@ export default function Logs() {
     setSearchText("");
   };
 
-  const logsData = data ? data : [];
+  const logsData = data
+    ? data.map((d) => {
+        return {
+          ...d,
+          prompt: JSON.stringify(d.prompt),
+        };
+      })
+    : [];
 
   const columns = [
     {
@@ -122,18 +130,36 @@ export default function Logs() {
       sorter: (a, b) =>
         new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime(),
       ...getColumnSearchProps("timestamp"),
+      render: (text) => (
+        <span>
+          {DateTime.fromSeconds(text).toFormat("yyyy-MM-dd HH:mm:ss")}
+        </span>
+      ),
     },
     {
-      title: "API Key Id",
-      dataIndex: "api_key",
-      key: "api_key",
-      ...getColumnSearchProps("api_key"),
+      title: "Prompt",
+      dataIndex: "prompt",
+      key: "prompt",
+
+      ...getColumnSearchProps("prompt"),
+    },
+    {
+      title: "Response",
+      dataIndex: "response",
+      key: "response",
+      ...getColumnSearchProps("response"),
     },
     {
       title: "Responder Hotkey",
       dataIndex: "responder_hotkey",
       key: "responder_hotkey",
       ...getColumnSearchProps("responder_hotkey"),
+    },
+    {
+      title: "API Key Id",
+      dataIndex: "api_key",
+      key: "api_key",
+      ...getColumnSearchProps("api_key"),
     },
   ];
 

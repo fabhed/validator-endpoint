@@ -1,6 +1,10 @@
+import json
 from typing import List, Optional
-from fastapi import APIRouter, HTTPException, Depends
+
+from fastapi import APIRouter, Depends
 from pydantic import BaseModel
+
+from btvep.btvep_models import Message
 from btvep.db.request import Request
 
 router = APIRouter()
@@ -10,6 +14,8 @@ class LogEntry(BaseModel):
     api_key: Optional[str]
     timestamp: int
     responder_hotkey: Optional[str]
+    prompt: List[Message]
+    response: str
 
 
 class CountResponse(BaseModel):
@@ -50,7 +56,24 @@ async def get_logs(filters: LogFilters = Depends()):
 
     log_entries_query = log_entries_query.limit(filters.lines)
 
-    log_entries = [LogEntry(**log) for log in log_entries_query.dicts().iterator()]
+    log_entries = []
+    for log in log_entries_query.dicts().iterator():
+        try:
+            if log["prompt"] and log["prompt"].strip():
+                prompt = json.loads(log["prompt"])
+            else:
+                prompt = []
+        except json.JSONDecodeError as e:
+            print(f"Failed to parse JSON from log['prompt']: {log['prompt']}")
+            print(f"Error: {e}")
+            prompt = []
+
+        # Update the 'prompt' in the log dict
+        log["prompt"] = prompt
+
+        log_entry = LogEntry(**log)
+        log_entries.append(log_entry)
+
     return log_entries
 
 

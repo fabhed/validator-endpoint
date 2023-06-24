@@ -5,6 +5,7 @@ import bittensor
 import rich
 from fastapi import Body, Depends, FastAPI, Header, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+import uvicorn
 
 from btvep.config import Config
 from btvep.constants import DEFAULT_UID, DEFAULT_NETUID
@@ -91,3 +92,7 @@ def chat(
         }
     else:
         raise HTTPException(status_code=500, detail=response.return_message)
+
+
+if __name__ == "__main__":
+    uvicorn.run(app, host="0.0.0.0", port=8000)

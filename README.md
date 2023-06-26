@@ -29,7 +29,7 @@ Allow validators to easily host an API for other services to prompt the Bittenso
 
 ```bash
 # Install with pip
-python3 -m pip install https://github.com/ViktorThink/validator-endpoint/raw/main/dist/btvep-0.1.0-py3-none-any.whl
+python3 -m pip install https://github.com/fabhed/validator-endpoint/raw/main/dist/btvep-0.1.0-py3-none-any.whl
 # Set your hotkey mnemonic (quotes are needed since the mnemonic has spaces in it)
 btvep config set hotkey_mnemonic "my_validators_secret_mnemonic_phrase_here"
 # Create an API key
@@ -132,7 +132,7 @@ Response:
 
 ```bash
 # Clone the repo
-git clone https://github.com/ViktorThink/validator-endpoint.git
+git clone https://github.com/fabhed/validator-endpoint.git
 cd validator-endpoint
 
 # Install depedencies

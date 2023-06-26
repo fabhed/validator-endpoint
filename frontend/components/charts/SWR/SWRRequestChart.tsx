@@ -38,6 +38,7 @@ export default function SWRRequestChart() {
     ],
     bucketSize: bucketDuration.as("seconds"),
     groupBy: "status",
+    groups: ["success", "error"],
   });
   return (
     <>

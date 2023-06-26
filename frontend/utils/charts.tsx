@@ -60,10 +60,12 @@ export function aggregateGroupData<T extends DataPoint, U>({
   data,
   bucketSize,
   groupBy,
+  groups,
 }: {
   data: T[];
   bucketSize: number;
   groupBy: string;
+  groups: string[];
 }) {
   const groupedData = data.reduce((acc, curr) => {
     // Create a bucket by truncating the timestamp to the nearest bucketSize.
@@ -73,14 +75,12 @@ export function aggregateGroupData<T extends DataPoint, U>({
     // Initialize bucket if it doesn't exist
     if (!acc[timestamp]) {
       acc[timestamp] = { timestamp };
+
+      // Initialize all possible group counts in the bucket
+      groups.forEach((group) => (acc[timestamp][group] = 0));
     }
 
-    // Initialize group count if it doesn't exist
-    if (!acc[timestamp][groupKey]) {
-      acc[timestamp][groupKey] = 0;
-    }
-
-    // Increment count for the specific group
+    // If current groupKey exists in groups then increment its count
     acc[timestamp][groupKey] += 1;
 
     return acc;

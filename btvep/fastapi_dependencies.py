@@ -59,7 +59,9 @@ async def InitializeRateLimiting():
         raise e
 
 
-def authenticate_api_key(input_api_key: str = Depends(oauth2_scheme)) -> ApiKey:
+def authenticate_api_key(
+    request: Request, input_api_key: str = Depends(oauth2_scheme)
+) -> ApiKey:
     def raiseKeyError(detail: str):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -67,22 +69,36 @@ def authenticate_api_key(input_api_key: str = Depends(oauth2_scheme)) -> ApiKey:
             headers={"WWW-Authenticate": "Bearer"},
         )
 
+    async def createErrorRequest(error: str):
+        DBRequest.create(
+            is_api_success=False,
+            api_error=error,
+            prompt=json.dumps((await request.json())["messages"]),
+            api_key=input_api_key,
+        )
+
     if (input_api_key is None) or (input_api_key == ""):
+        createErrorRequest("APIKeyMissing")
         raiseKeyError("Missing API key")
 
     api_key = get_api_key_by_key(input_api_key)
     if api_key is None:
+        createErrorRequest("APIKeyInvalid")
         raiseKeyError("Invalid API key")
+
     elif api_key.enabled == 0:
+        createErrorRequest("APIKeyDisabled")
         raiseKeyError("API key is disabled")
     elif (api_key.valid_until != -1) and (
         api_key.valid_until < datetime.now().timestamp()
     ):
+        createErrorRequest("APIKeyExpired")
         raiseKeyError(
             "API key has expired as of "
             + str(datetime.utcfromtimestamp(api_key.valid_until))
         )
     elif not api_key.has_unlimited_credits() and api_key.credits - COST < 0:
+        createErrorRequest("APIKeyNotEnoughCredits")
         raiseKeyError("Not enough credits")
 
     ###  API key is now validated. ###

@@ -387,6 +387,7 @@ export default function ViewApiKeys() {
   return (
     <div>
       <Button
+        type="primary"
         onClick={async () => {
           try {
             await axios.post("/admin/api-keys/", { name: "New API Key" });
@@ -398,7 +399,7 @@ export default function ViewApiKeys() {
         }}
         style={{ marginBottom: 16 }}
       >
-        Create New
+        Create New API Key
       </Button>
       <Table
         rowClassName={() => "editable-row"}

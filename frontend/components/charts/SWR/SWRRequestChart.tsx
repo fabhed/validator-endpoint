@@ -1,12 +1,12 @@
+import { QuestionCircleOutlined } from "@ant-design/icons";
+import { Space, Tooltip, Typography } from "antd";
+import { DateTime, Duration } from "luxon";
+import { useState } from "react";
 import useSWR from "swr";
+import { aggregateGroupData } from "../../../utils/charts";
 import fetcher from "../../../utils/fetcher";
 import RequestChart, { RequestChartDataPoint } from "../RequestChart";
-import { aggregateData, aggregateGroupData } from "../../../utils/charts";
 import { DurationSelectors } from "../helpers/DurationSelector";
-import { Duration } from "luxon";
-import { useState } from "react";
-import { Space, Tooltip, Typography } from "antd";
-import { QuestionCircleOutlined } from "@ant-design/icons";
 const { Title } = Typography;
 
 export default function SWRRequestChart() {
@@ -17,12 +17,14 @@ export default function SWRRequestChart() {
     Duration.fromObject({ weeks: 1 })
   );
 
+  const start = DateTime.now().minus(historyDuration).toSeconds().toFixed(0);
+
   const { data: successData, error: successError } = useSWR<RequestLogEntry[]>(
-    "/admin/logs?is_success=true",
+    `/admin/logs?is_success=true&start=${start}`,
     fetcher
   );
   const { data: failureData, error: failureError } = useSWR<RequestLogEntry[]>(
-    "/admin/logs?is_success=false",
+    `/admin/logs?is_success=false&start=${start}`,
     fetcher
   );
 

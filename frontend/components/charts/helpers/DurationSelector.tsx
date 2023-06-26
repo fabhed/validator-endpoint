@@ -41,6 +41,7 @@ export const DurationSelectors = ({
         value={historyDuration.toISO()}
         onChange={(value) => setHistoryDuration(Duration.fromISO(value))}
       >
+        <Option value="PT1H">1 hour</Option>
         <Option value="P1D">1 day</Option>
         <Option value="P1W">1 week</Option>
         <Option value="P1M">1 month</Option>

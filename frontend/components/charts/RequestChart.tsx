@@ -33,17 +33,21 @@ export default function RequestChart({
         />
         <Area
           type="monotone"
-          dataKey="success"
-          stroke="#000"
-          fill={green[6]}
-          fillOpacity={0.8}
-        />
-        <Area
-          type="monotone"
           dataKey="error"
           stroke="#000"
           fill={red[4]}
           fillOpacity={0.8}
+          stackId="1"
+          order={1}
+        />
+        <Area
+          type="monotone"
+          dataKey="success"
+          stroke="#000"
+          fill={green[6]}
+          fillOpacity={0.8}
+          stackId="1"
+          order={0}
         />
         <XAxis
           dataKey="timestamp"
@@ -63,6 +67,16 @@ export default function RequestChart({
               value as number,
               key === "error" ? "Failed requests" : "Successful Requests",
             ];
+          }}
+          itemSorter={(item) => {
+            switch (item.dataKey) {
+              case "success":
+                return 1;
+              case "error":
+                return 2;
+              default:
+                return 3;
+            }
           }}
           cursor={{ fill: "#808080", fillOpacity: 0.3 }}
         />

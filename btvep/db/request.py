@@ -11,7 +11,7 @@ from .utils import db
 class Request(Model):
     id = AutoField()
     api_key = ForeignKeyField(ApiKey, field="api_key", backref="requests")
-    timestamp = IntegerField(default=int(time.time()))
+    timestamp = IntegerField(default=lambda: int(time.time()))
     prompt = TextField()
 
     # API fields - before request is sent to the bittensor network

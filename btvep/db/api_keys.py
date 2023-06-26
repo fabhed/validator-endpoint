@@ -22,8 +22,8 @@ class ApiKey(BaseModel):
     credits = IntegerField(default=-1)
     enabled = BooleanField(default=True)
     rate_limits = TextField(null=True)
-    created_at = DateTimeField(default=int(time.time()))
-    updated_at = DateTimeField(default=int(time.time()))
+    created_at = DateTimeField(default=lambda: int(time.time()))
+    updated_at = DateTimeField(default=lambda: int(time.time()))
 
     def has_unlimited_credits(self):
         return self.credits == -1

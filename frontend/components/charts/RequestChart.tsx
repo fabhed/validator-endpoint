@@ -1,22 +1,28 @@
 import {
-  LineChart,
-  Line,
+  Area,
+  AreaChart,
   CartesianGrid,
   ResponsiveContainer,
   Tooltip,
   XAxis,
   YAxis,
 } from "recharts";
-import { AggregatedDataPoint, formatXAxis } from "../../utils/charts";
+import { formatXAxis } from "../../utils/charts";
+
+export interface RequestChartDataPoint {
+  success: number;
+  error: number;
+  timestamp: number;
+}
 
 export default function RequestChart({
   data,
 }: {
-  data: AggregatedDataPoint[];
+  data: RequestChartDataPoint[];
 }) {
   return (
     <ResponsiveContainer width="100%" height={500}>
-      <LineChart data={data} margin={{ right: 50, left: 30, top: 5 }}>
+      <AreaChart data={data} margin={{ right: 50, left: 30, top: 5 }}>
         <CartesianGrid
           strokeDasharray="4 3"
           strokeWidth={1}
@@ -24,7 +30,8 @@ export default function RequestChart({
           horizontal={true}
           vertical={false}
         />
-        <Line type="monotone" dataKey="amount" stroke="#000" />
+        <Area type="monotone" dataKey="success" stroke="#000" fill="#000" />
+        <Area type="monotone" dataKey="error" stroke="#f00" fill="#f00" />
         <XAxis
           dataKey="timestamp"
           axisLine={false}
@@ -35,13 +42,18 @@ export default function RequestChart({
           textAnchor="end"
           height={105}
         />
-        <YAxis dataKey="amount" padding={{ top: 0 }} allowDecimals={false} />
+        <YAxis padding={{ top: 0 }} allowDecimals={false} />
         <Tooltip
           labelFormatter={(value) => formatXAxis(value)}
-          formatter={(value) => [value as number, "Requests"]}
+          formatter={(value, key) => {
+            return [
+              value as number,
+              key === "error" ? "Failed requests" : "Successful Requests",
+            ];
+          }}
           cursor={{ fill: "#808080", fillOpacity: 0.3 }}
         />
-      </LineChart>
+      </AreaChart>
     </ResponsiveContainer>
   );
 }

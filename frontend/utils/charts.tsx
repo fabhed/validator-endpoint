@@ -55,3 +55,39 @@ export function aggregateData<T extends DataPoint>({
   }));
   return aggregatedData;
 }
+
+export function aggregateGroupData<T extends DataPoint, U>({
+  data,
+  bucketSize,
+  groupBy,
+}: {
+  data: T[];
+  bucketSize: number;
+  groupBy: string;
+}) {
+  const groupedData = data.reduce((acc, curr) => {
+    // Create a bucket by truncating the timestamp to the nearest bucketSize.
+    const timestamp = Math.floor(curr.timestamp / bucketSize) * bucketSize;
+    const groupKey = `${curr[groupBy]}`;
+
+    // Initialize bucket if it doesn't exist
+    if (!acc[timestamp]) {
+      acc[timestamp] = { timestamp };
+    }
+
+    // Initialize group count if it doesn't exist
+    if (!acc[timestamp][groupKey]) {
+      acc[timestamp][groupKey] = 0;
+    }
+
+    // Increment count for the specific group
+    acc[timestamp][groupKey] += 1;
+
+    return acc;
+  }, {});
+
+  // Convert the grouped data into an array
+  const aggregatedData = Object.values(groupedData);
+
+  return aggregatedData as U[];
+}

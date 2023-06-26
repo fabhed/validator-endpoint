@@ -39,6 +39,8 @@ class CountResponse(BaseModel):
 class CommonFilters(BaseModel):
     key: Optional[str] = None
     responder_hotkey: Optional[str] = None
+    is_api_success: Optional[bool] = None
+    is_success: Optional[bool] = None
     start: Optional[int] = None
     end: Optional[int] = None
 
@@ -50,14 +52,27 @@ class LogFilters(CommonFilters):
 def apply_filters(query, filters: CommonFilters):
     if filters.key:
         query = query.where(Request.api_key_id == filters.key)
+
     if filters.start and filters.end:
         query = query.where(Request.timestamp.between(filters.start, filters.end))
     elif filters.start:
         query = query.where(Request.timestamp >= filters.start)
     elif filters.end:
         query = query.where(Request.timestamp <= filters.end)
+
     if filters.responder_hotkey:
         query = query.where(Request.responder_hotkey == filters.responder_hotkey)
+
+    if filters.is_api_success is not None:
+        query = query.where(Request.is_api_success == filters.is_api_success)
+    if filters.is_success is not None:
+        if filters.is_success:
+            query = query.where(Request.is_success)
+        else:
+            # is_success is nullable, so we need to check for null or false
+            query = query.where(
+                Request.is_success.is_null(True) | (Request.is_success == False)
+            )
 
     return query
 

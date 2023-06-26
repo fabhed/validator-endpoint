@@ -1,7 +1,7 @@
 import useSWR from "swr";
 import fetcher from "../../../utils/fetcher";
-import RequestChart from "../RequestChart";
-import { aggregateData } from "../../../utils/charts";
+import RequestChart, { RequestChartDataPoint } from "../RequestChart";
+import { aggregateData, aggregateGroupData } from "../../../utils/charts";
 import { DurationSelectors } from "../helpers/DurationSelector";
 import { Duration } from "luxon";
 import { useState } from "react";
@@ -17,15 +17,25 @@ export default function SWRRequestChart() {
     Duration.fromObject({ weeks: 1 })
   );
 
-  const { data, error } = useSWR<RequestLogEntry[]>("/admin/logs", fetcher);
+  const { data: successData, error: successError } = useSWR<RequestLogEntry[]>(
+    "/admin/logs?is_success=true",
+    fetcher
+  );
+  const { data: failureData, error: failureError } = useSWR<RequestLogEntry[]>(
+    "/admin/logs?is_success=false",
+    fetcher
+  );
 
-  if (error) return <div>Failed to load data</div>;
-  if (!data) return <div>Loading...</div>;
+  if (successError || failureError) return <div>Failed to load data</div>;
+  if (!successData || !failureData) return <div>Loading...</div>;
 
-  // Transform the data into a suitable format for the chart
-  const chartData = aggregateData<RequestLogEntry>({
-    data,
+  const data = aggregateGroupData<RequestLogEntry, RequestChartDataPoint>({
+    data: [
+      ...successData.map((s) => ({ ...s, status: "success" })),
+      ...failureData.map((s) => ({ ...s, status: "error" })),
+    ],
     bucketSize: bucketDuration.as("seconds"),
+    groupBy: "status",
   });
   return (
     <>
@@ -33,7 +43,7 @@ export default function SWRRequestChart() {
         <Space size="large" wrap>
           <Title level={2} style={{ whiteSpace: "nowrap" }}>
             API Usage
-            <Tooltip title="The graph shows the amount of valid requests sent to the api.">
+            <Tooltip title="The graph shows the amount of successful and failed requests sent to the api.">
               <QuestionCircleOutlined
                 style={{
                   marginLeft: "8px",
@@ -52,7 +62,7 @@ export default function SWRRequestChart() {
           />
         </Space>
       </div>
-      <RequestChart data={chartData}></RequestChart>
+      <RequestChart data={data}></RequestChart>
     </>
   );
 }

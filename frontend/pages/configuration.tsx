@@ -79,7 +79,13 @@ export default function Configuration() {
     <>
       <section style={{ marginBottom: 40 }}>
         <Space size={"large"} direction="vertical" style={{ display: "flex" }}>
-          <Title>Configuration</Title>
+          <div>
+            <Title style={{ marginBottom: 5 }}>Configuration</Title>
+            <p style={{ margin: 0 }}>
+              The api server will have to be restarted for changes to take
+              effect.
+            </p>
+          </div>
           {configError && <div>Error loading configuration</div>}
           <Form layout="vertical">
             <Form.Item label="Hotkey Mnemonic">

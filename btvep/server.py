@@ -75,13 +75,21 @@ def chat(
     loop = asyncio.new_event_loop()
     asyncio.set_event_loop(loop)
     response = validator_prompter.query_network(messages=messages, uid=uid)
+    Request.create(
+        is_api_success=True,
+        prompt=json.dumps([message.dict() for message in messages]),
+        api_key=authorization.split(" ")[1],
+        response=response.completion,
+        responder_hotkey=response.dest_hotkey,
+        is_success=response.is_success,
+        return_message=response.return_message,
+        elapsed_time=response.elapsed,
+        src_hotkey=response.src_hotkey,
+        src_version=response.src_version,
+        dest_version=response.dest_version,
+        return_code=response.return_code,
+    )
     if response.is_success:
-        Request.create(
-            prompt=json.dumps([message.dict() for message in messages]),
-            response=response.completion,
-            api_key=authorization.split(" ")[1],
-            responder_hotkey=response.dest_hotkey,
-        )
         return {
             "choices": [
                 {

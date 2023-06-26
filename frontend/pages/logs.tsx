@@ -1,11 +1,20 @@
 import { useEffect, useState, useRef } from "react";
-import { Table, Input, Button, Space, InputRef } from "antd";
+import { Table, Input, Button, Space, InputRef, Badge } from "antd";
 import Highlighter from "react-highlight-words";
 import { SearchOutlined } from "@ant-design/icons";
 import useSWR from "swr";
 import fetcher from "../utils/fetcher";
 import { FilterDropdownProps } from "antd/es/table/interface";
 import { DateTime } from "luxon";
+
+function renderErrorCell(isError: boolean, errorText: string) {
+  return (
+    <Space wrap={false}>
+      <Badge color={isError ? "red" : "green"}></Badge>
+      {errorText}
+    </Space>
+  );
+}
 
 export default function Logs() {
   const { data, error } = useSWR("/admin/logs/", fetcher);
@@ -77,9 +86,10 @@ export default function Logs() {
       <SearchOutlined style={{ color: filtered ? "#1677ff" : undefined }} />
     ),
     onFilter: (value, record) => {
-      debugger;
+      if (record === undefined) return false;
+      if (record[dataIndex] === undefined) return false;
+      if (record[dataIndex] === null) return false;
       return record[dataIndex]
-        .toString()
         .toLowerCase()
         .trim()
         .includes((value || "").toLowerCase().trim());
@@ -98,7 +108,7 @@ export default function Logs() {
           textToHighlight={text ? text.toString() : ""}
         />
       ) : (
-        text
+        text?.trim()
       ),
   });
 
@@ -132,9 +142,22 @@ export default function Logs() {
       ...getColumnSearchProps("timestamp"),
       render: (text) => (
         <span>
+          {text}
+          <br></br>
           {DateTime.fromSeconds(text).toFormat("yyyy-MM-dd HH:mm:ss")}
         </span>
       ),
+    },
+    {
+      title: "Status",
+      key: "status",
+      render(text, record) {
+        let isError = !(record.is_api_success && record.is_success);
+        return renderErrorCell(
+          isError,
+          record.api_error || record.return_message
+        );
+      },
     },
     {
       title: "Prompt",

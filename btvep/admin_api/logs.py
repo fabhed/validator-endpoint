@@ -15,7 +15,21 @@ class LogEntry(BaseModel):
     timestamp: int
     responder_hotkey: Optional[str]
     prompt: List[Message]
-    response: str
+
+    # API fields - before request is sent to the bittensor network
+    is_api_success: bool
+    api_error: Optional[str]
+
+    # Fields from DendriteCall class
+    response: Optional[str]
+    responder_hotkey: Optional[str]
+    is_success: Optional[bool]
+    return_message: Optional[str]
+    elapsed_time: Optional[float]
+    src_hotkey: Optional[str]
+    src_version: Optional[int]
+    dest_version: Optional[int]
+    return_code: Optional[int]
 
 
 class CountResponse(BaseModel):

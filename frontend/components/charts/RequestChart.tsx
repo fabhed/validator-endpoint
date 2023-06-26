@@ -8,6 +8,7 @@ import {
   YAxis,
 } from "recharts";
 import { formatXAxis } from "../../utils/charts";
+import { green, red } from "@ant-design/colors";
 
 export interface RequestChartDataPoint {
   success: number;
@@ -30,8 +31,20 @@ export default function RequestChart({
           horizontal={true}
           vertical={false}
         />
-        <Area type="monotone" dataKey="success" stroke="#000" fill="#000" />
-        <Area type="monotone" dataKey="error" stroke="#f00" fill="#f00" />
+        <Area
+          type="monotone"
+          dataKey="success"
+          stroke="#000"
+          fill={green[6]}
+          fillOpacity={0.8}
+        />
+        <Area
+          type="monotone"
+          dataKey="error"
+          stroke="#000"
+          fill={red[4]}
+          fillOpacity={0.8}
+        />
         <XAxis
           dataKey="timestamp"
           axisLine={false}

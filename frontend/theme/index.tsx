@@ -1,26 +1,19 @@
 import React from "react";
-import { ConfigProvider, theme } from "antd";
+import { ConfigProvider } from "antd";
+import { blue } from "@ant-design/colors";
 
 const withTheme = (node: JSX.Element) => (
-  <>
-    <ConfigProvider
-      theme={{
-        token: {
-          colorPrimary: "#000",
-        },
-      }}
-    >
-      <ConfigProvider
-        theme={{
-          token: {
-            borderRadius: 16,
-          },
-        }}
-      >
-        {node}
-      </ConfigProvider>
-    </ConfigProvider>
-  </>
+  <ConfigProvider
+    theme={{
+      token: {
+        colorPrimary: "#000",
+        controlItemBgActive: blue[0],
+        borderRadius: 16,
+      },
+    }}
+  >
+    {node}
+  </ConfigProvider>
 );
 
 export default withTheme;

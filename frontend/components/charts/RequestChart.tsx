@@ -34,7 +34,7 @@ export default function RequestChart({
         <Area
           type="monotone"
           dataKey="error"
-          stroke="#000"
+          stroke={red[6]}
           fill={red[4]}
           fillOpacity={0.8}
           stackId="1"
@@ -43,7 +43,7 @@ export default function RequestChart({
         <Area
           type="monotone"
           dataKey="success"
-          stroke="#000"
+          stroke={green[8]}
           fill={green[6]}
           fillOpacity={0.8}
           stackId="1"

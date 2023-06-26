@@ -1,10 +1,12 @@
 import asyncio
 import json
+from enum import Enum
 from typing import Annotated, List
 
 import bittensor
 import rich
 import uvicorn
+from bittensor.utils.codes import code_to_string
 from fastapi import Body, Depends, FastAPI, Header, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -75,6 +77,14 @@ def chat(
     loop = asyncio.new_event_loop()
     asyncio.set_event_loop(loop)
     response = validator_prompter.query_network(messages=messages, uid=uid)
+
+    return_code = None
+    if isinstance(type(response.return_code), type(Enum)):
+        return_code = response.return_code.value  # if return_code is an enum member
+    else:
+        return_code = response.return_code  # if return_code is not an enum member
+    return_code_str = code_to_string(return_code)
+
     Request.create(
         is_api_success=True,
         prompt=json.dumps([message.dict() for message in messages]),
@@ -87,7 +97,7 @@ def chat(
         src_hotkey=response.src_hotkey,
         src_version=response.src_version,
         dest_version=response.dest_version,
-        return_code=response.return_code,
+        return_code=return_code_str,
     )
     if response.is_success:
         return {

@@ -29,7 +29,7 @@ class LogEntry(BaseModel):
     src_hotkey: Optional[str]
     src_version: Optional[int]
     dest_version: Optional[int]
-    return_code: Optional[int]
+    return_code: Optional[str]
 
 
 class CountResponse(BaseModel):

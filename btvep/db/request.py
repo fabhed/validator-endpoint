@@ -27,7 +27,7 @@ class Request(Model):
     src_hotkey = TextField(null=True)
     src_version = IntegerField(null=True)
     dest_version = IntegerField(null=True)
-    return_code = IntegerField(null=True)
+    return_code = TextField(null=True)
 
     class Meta:
         database = db

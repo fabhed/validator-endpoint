@@ -1,5 +1,6 @@
 from datetime import datetime
 import json
+from math import ceil
 from typing import Annotated
 
 import redis.asyncio
@@ -15,6 +16,8 @@ from btvep.db.api_keys import ApiKey
 from btvep.db.api_keys import get_by_key as get_api_key_by_key
 from btvep.db.api_keys import update as update_api_key
 from btvep.db.utils import db, db_state_default
+from btvep.db.request import Request as DBRequest
+
 
 config = Config().load()
 
@@ -108,10 +111,45 @@ def get_rate_limits(api_key: str = None) -> list[RateLimiter]:
     elif config.rate_limiting_enabled:
         rate_limits = config.global_rate_limits
 
-    return [
-        RateLimiter(times=limit["times"], seconds=limit["seconds"])
+    HTTP_429_TOO_MANY_REQUESTS = 429
+
+    async def ratelimit_callback(request, response, pexpire, limit):
+        print(
+            f"Rate limit triggered for ratelimit rule: {limit}",
+        )
+
+        DBRequest.create(
+            is_api_success=False,
+            api_error="RateLimitExceeded",
+            prompt=json.dumps((await request.json())["messages"]),
+            api_key=request.headers.get("authorization").split(" ")[1],
+        )
+
+        expire = ceil(pexpire / 1000)
+
+        raise HTTPException(
+            HTTP_429_TOO_MANY_REQUESTS,
+            "Too Many Requests",
+            headers={"Retry-After": str(expire)},
+        )
+
+    rate_limiters = [
+        RateLimiter(
+            times=limit["times"],
+            seconds=limit["seconds"],
+            callback=lambda request, response, pexpire: ratelimit_callback(
+                request, response, pexpire, limit
+            ),
+        )
         for limit in rate_limits
     ]
+
+    # Sort the list in ascending order by the ratio of milliseconds to times
+    sorted_rate_limiters = sorted(
+        rate_limiters, key=lambda rl: rl.milliseconds / rl.times
+    )
+
+    return sorted_rate_limiters
 
 
 global_rate_limits = get_rate_limits()

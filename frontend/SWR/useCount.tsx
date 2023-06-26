@@ -4,6 +4,8 @@ import fetcher from "../utils/fetcher";
 interface CommonFilters {
   key?: string;
   responder_hotkey?: string;
+  is_api_success?: boolean;
+  is_success?: boolean;
   start?: number;
   end?: number;
   unique_api_keys?: boolean;

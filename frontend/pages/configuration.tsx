@@ -102,7 +102,7 @@ export default function Configuration() {
                 onCancel={() => {}}
               />
             </Form.Item>
-            <Form.Item label="Validator Auth Strategy">
+            {/* <Form.Item label="Validator Auth Strategy">
               <EditableField
                 initialValue={configValues.validator_auth_strategy}
                 name="validator_auth_strategy"
@@ -113,7 +113,7 @@ export default function Configuration() {
                 onChange={() => {}}
                 onCancel={() => {}}
               />
-            </Form.Item>
+            </Form.Item> */}
             <Form.Item label="Redis URL">
               <EditableField
                 initialValue={configValues.redis_url}

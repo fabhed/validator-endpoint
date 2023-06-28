@@ -14,11 +14,15 @@ class Request(Model):
     timestamp = IntegerField(default=lambda: int(time.time()))
     prompt = TextField()
 
-    # API fields - before request is sent to the bittensor network
+    ### API fields - before request is sent to the bittensor network ###
     is_api_success = BooleanField()
     api_error = TextField(null=True)
+    # api request id is the id of the request in the validator-endpoint api.
+    # This can be useful since multiple request rows can be created for one api request,
+    # since the api request makes multiple bittensor requests.
+    api_request_id = TextField()
 
-    # Fields from DendriteCall class
+    ### Fields from DendriteCall class ###
     response = TextField(null=True)
     responder_hotkey = TextField(null=True)
     is_success = BooleanField(null=True)

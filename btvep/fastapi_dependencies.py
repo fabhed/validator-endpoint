@@ -4,6 +4,7 @@ import logging
 from datetime import datetime
 from math import ceil
 from typing import Annotated
+import uuid
 
 import openai
 import redis.asyncio
@@ -80,8 +81,10 @@ async def authenticate_api_key(
         )
 
     async def createErrorRequest(error: str):
+        api_request_id = str(uuid.uuid4())
         DBRequest.create(
             is_api_success=False,
+            api_request_id=api_request_id,
             api_error=error,
             prompt=json.dumps((await request.json())["messages"]),
             api_key=input_api_key,
@@ -148,9 +151,10 @@ def get_rate_limits(api_key: str = None) -> list[RateLimiter]:
         print(
             f"Rate limit triggered for ratelimit rule: {limit}",
         )
-
+        api_request_id = str(uuid.uuid4())
         DBRequest.create(
             is_api_success=False,
+            api_request_id=api_request_id,
             api_error="RateLimitExceeded",
             prompt=json.dumps((await request.json())["messages"]),
             api_key=request.headers.get("authorization").split(" ")[1],

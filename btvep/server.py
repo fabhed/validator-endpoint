@@ -1,6 +1,7 @@
 import asyncio
 import json
 import logging
+import uuid
 from enum import Enum
 from typing import Annotated, Dict, List
 
@@ -120,7 +121,7 @@ async def chat(
 ) -> ChatResponse:
     loop = asyncio.new_event_loop()
     asyncio.set_event_loop(loop)
-
+    api_request_id = str(uuid.uuid4())
     prompter_responses = None
     try:
         prompter_responses = await validator_prompter.query_network(
@@ -154,6 +155,7 @@ async def chat(
 
         Request.create(
             is_api_success=True,
+            api_request_id=api_request_id,
             prompt=json.dumps([message.dict() for message in messages]),
             api_key=authorization.split(" ")[1],
             response=dendrite_res.completion,

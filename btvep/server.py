@@ -1,6 +1,7 @@
 import asyncio
 import json
 from enum import Enum
+import logging
 from typing import Annotated, Dict, List
 
 import bittensor
@@ -10,6 +11,8 @@ from bittensor.utils.codes import code_to_string
 from fastapi import Body, Depends, FastAPI, Header, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+
+logging.basicConfig(format="%(levelname)s: %(message)s", level=logging.DEBUG)
 
 from btvep.admin_api import (
     router as admin_router,
@@ -26,7 +29,8 @@ from btvep.db.request import Request
 from btvep.db.tables import create_all as create_all_tables
 from btvep.db.utils import DB_PATH
 from btvep.fastapi_dependencies import InitializeRateLimiting, VerifyAndLimit, get_db
-from btvep.validator_prompter import ValidatorPrompter
+from btvep.metagraph import MetagraphSyncer
+from btvep.validator_prompter import MetagraphNotSyncedException, ValidatorPrompter
 
 create_all_tables()
 config = Config().load().validate()
@@ -37,8 +41,10 @@ rich.print_json(config.to_json(hide_mnemonic=True))
 print("Using SQLite database at", DB_PATH)
 
 # Initialize the validator prompter for bittensor
+metagraph_syncer = MetagraphSyncer(DEFAULT_NETUID)
+metagraph_syncer.start_sync_thread()
 hotkey = bittensor.Keypair.create_from_mnemonic(config.hotkey_mnemonic)
-validator_prompter = ValidatorPrompter(hotkey, DEFAULT_NETUID)
+validator_prompter = ValidatorPrompter(hotkey, metagraph_syncer)
 
 
 app = FastAPI()
@@ -99,9 +105,17 @@ async def chat(
 ) -> ChatResponse:
     loop = asyncio.new_event_loop()
     asyncio.set_event_loop(loop)
-    prompter_responses = await validator_prompter.query_network(
-        messages=messages, uids=uids
-    )
+
+    prompter_responses = None
+    try:
+        prompter_responses = await validator_prompter.query_network(
+            messages=messages, uids=uids
+        )
+    except MetagraphNotSyncedException as e:
+        raise HTTPException(
+            detail="Metagraph is not synced yet. Please try again later.",
+            status_code=500,
+        ) from e
 
     choices: List[ChatResponseChoice] = []
     failed_responses: List[FailedMinerResponse] = []

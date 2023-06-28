@@ -4,6 +4,11 @@ from typing import List
 from bittensor import Keypair, metagraph, text_prompting
 
 from btvep.btvep_models import Message
+from btvep.metagraph import MetagraphSyncer
+
+
+class MetagraphNotSyncedException(Exception):
+    pass
 
 
 class ValidatorPrompter:
@@ -13,15 +18,19 @@ class ValidatorPrompter:
     so we want initialize it once and then reuse the instance for api requests.
     """
 
-    def __init__(self, hotkey: Keypair, netuid: int):
-        self.metagraph: metagraph = metagraph(netuid)
+    def __init__(self, hotkey: Keypair, metagraph_syncer: MetagraphSyncer):
+        self.metagraph_syncer: MetagraphSyncer = metagraph_syncer
         self.hotkey = hotkey
 
     def _get_dendrite(self, uid):
-        axon = self.metagraph.axons[uid]
+        if self.metagraph_syncer.metagraph is None:
+            raise MetagraphNotSyncedException()
+        axon = self.metagraph_syncer.metagraph.axons[uid]
         return text_prompting(keypair=self.hotkey, axon=axon)
 
     async def query_network(self, messages: List[Message], uids: List[int]):
+        if self.metagraph_syncer.metagraph is None:
+            raise MetagraphNotSyncedException()
         roles = [el.role for el in messages]
         messages = [el.content for el in messages]
 

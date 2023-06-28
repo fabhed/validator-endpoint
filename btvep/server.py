@@ -1,7 +1,7 @@
 import asyncio
 import json
-from enum import Enum
 import logging
+from enum import Enum
 from typing import Annotated, Dict, List
 
 import bittensor
@@ -12,6 +12,9 @@ from fastapi import Body, Depends, FastAPI, Header, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
+from btvep.db.api_keys import ApiKey
+from btvep.db.api_keys import update as update_api_key
+
 logging.basicConfig(format="%(levelname)s: %(message)s", level=logging.DEBUG)
 
 from btvep.admin_api import (
@@ -19,16 +22,21 @@ from btvep.admin_api import (
 )  # composed router from the admin module
 from btvep.btvep_models import (
     ChatResponse,
+    ChatResponseChoice,
     FailedMinerResponse,
     Message,
-    ChatResponseChoice,
 )
 from btvep.config import Config
-from btvep.constants import DEFAULT_NETUID, DEFAULT_UIDS
+from btvep.constants import COST, DEFAULT_NETUID, DEFAULT_UIDS
 from btvep.db.request import Request
 from btvep.db.tables import create_all as create_all_tables
 from btvep.db.utils import DB_PATH
-from btvep.fastapi_dependencies import InitializeRateLimiting, VerifyAndLimit, get_db
+from btvep.fastapi_dependencies import (
+    InitializeRateLimiting,
+    VerifyAndLimit,
+    authenticate_api_key,
+    get_db,
+)
 from btvep.metagraph import MetagraphSyncer
 from btvep.validator_prompter import MetagraphNotSyncedException, ValidatorPrompter
 
@@ -95,7 +103,7 @@ import json
     "/chat",
     dependencies=[
         Depends(get_db),
-        Depends(VerifyAndLimit()),
+        Depends(lambda: VerifyAndLimit(Depends(authenticate_api_key))),
     ],
 )
 async def chat(
@@ -108,6 +116,7 @@ async def chat(
         ),
     ] = None,
     messages: Annotated[List[Message] | None, Body()] = None,
+    api_key: ApiKey = Depends(authenticate_api_key),
 ) -> ChatResponse:
     loop = asyncio.new_event_loop()
     asyncio.set_event_loop(loop)
@@ -193,6 +202,25 @@ async def chat(
             detail="All miner responses have failed.",
             failed_responses=failed_responses,
         )
+
+    # Subtract cost if not unlimited - Only pay for successful responses
+    credits = (
+        None
+        if api_key.has_unlimited_credits()
+        else api_key.credits - COST * len(choices)
+    )
+
+    # Increment request count and potentially credits
+    update_api_key(
+        api_key.api_key,
+        api_request_count=api_key.api_request_count
+        + 1,  # increment by one for each request to the API
+        request_count=api_key.request_count
+        + len(
+            prompter_responses
+        ),  # increment by the number of requests sent to the network
+        credits=credits,
+    )
 
     response_dict = {"choices": choices, "failed_responses": failed_responses}
 

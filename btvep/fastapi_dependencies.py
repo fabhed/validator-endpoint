@@ -4,8 +4,8 @@ import logging
 from datetime import datetime
 from math import ceil
 from typing import Annotated
-import openai
 
+import openai
 import redis.asyncio
 import rich
 from fastapi import Depends, HTTPException, status
@@ -17,7 +17,6 @@ from btvep.config import Config
 from btvep.constants import COST
 from btvep.db.api_keys import ApiKey
 from btvep.db.api_keys import get_by_key as get_api_key_by_key
-from btvep.db.api_keys import update as update_api_key
 from btvep.db.request import Request as DBRequest
 from btvep.db.utils import db, db_state_default
 
@@ -129,16 +128,6 @@ async def authenticate_api_key(
             logging.warning("OpenAI filter auth error. Allowing request.")
             pass
 
-    # Subtract cost if not unlimited
-    credits = None if api_key.has_unlimited_credits() else api_key.credits - COST
-
-    # Increment request count and potentially credits
-    update_api_key(
-        api_key.api_key,
-        request_count=api_key.request_count + 1,
-        credits=credits,
-    )
-
     return api_key
 
 
@@ -197,7 +186,7 @@ def get_rate_limits(api_key: str = None) -> list[RateLimiter]:
 global_rate_limits = get_rate_limits()
 
 
-def VerifyAndLimit():
+def VerifyAndLimit(api_key: ApiKey):
     async def a(
         request: Request,
         response: Response,

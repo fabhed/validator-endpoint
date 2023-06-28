@@ -17,7 +17,10 @@ class ApiKey(BaseModel):
     api_key = TextField(unique=True)
     api_key_hint = TextField()
     name = TextField(null=True)
+    # Number of requests to the bittensor network
     request_count = IntegerField(default=0)
+    # Number of requests to the validator-endpoint api (one api request can make multiple bittensor requests)
+    api_request_count = IntegerField(default=0)
     valid_until = DateTimeField(default=-1)
     credits = IntegerField(default=-1)
     enabled = BooleanField(default=True)
@@ -46,6 +49,7 @@ class ApiKey(BaseModel):
 def insert(
     api_key: str = None,
     request_count: int = 0,
+    api_request_count: int = 0,
     valid_until: int = -1,
     credits: int = -1,
     enabled: bool = True,
@@ -58,6 +62,7 @@ def insert(
         api_key=api_key,
         api_key_hint="..." + api_key[-4:],
         request_count=request_count,
+        api_request_count=api_request_count,
         valid_until=valid_until,
         credits=credits,
         enabled=enabled,
@@ -90,6 +95,7 @@ def update(
     api_key_hint: str = None,
     name: str = None,
     request_count: int = None,
+    api_request_count: int = None,
     valid_until: int = None,
     credits: int = None,
     enabled: bool = None,
@@ -99,6 +105,7 @@ def update(
         "api_key_hint": api_key_hint,
         "name": name,
         "request_count": request_count,
+        "api_request_count": api_request_count,
         "valid_until": valid_until,
         "credits": credits,
         "enabled": enabled,

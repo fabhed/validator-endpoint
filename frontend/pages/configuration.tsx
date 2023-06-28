@@ -16,6 +16,7 @@ import fetcher from "../utils/fetcher";
 import { getErrorMessageFromResponse } from "../utils/api-handlers";
 import { EditableField } from "../components/EditableField";
 import { QuestionCircleOutlined } from "@ant-design/icons";
+import { RateLimitForm } from "../components/RateLimitForm";
 
 const { Title } = Typography;
 
@@ -44,7 +45,6 @@ export default function Configuration() {
   );
 
   const [configValues, setConfigValues] = useState<Configuration>({});
-  const [isEditingRateLimits, setIsEditingRateLimits] = useState(false);
 
   useEffect(() => {
     setConfigValues(configData || {});
@@ -63,20 +63,11 @@ export default function Configuration() {
     }
   };
 
-  const handleAddRateLimit = () => {
+  const onRateLimitsChange = (rateLimits) => {
     setConfigValues({
       ...configValues,
-      global_rate_limits: [
-        ...(configValues.global_rate_limits || []),
-        { times: 0, seconds: 0 },
-      ],
+      global_rate_limits: rateLimits,
     });
-  };
-
-  const handleRemoveRateLimit = (index) => {
-    const newRateLimits = [...(configValues.global_rate_limits || [])];
-    newRateLimits.splice(index, 1);
-    setConfigValues({ ...configValues, global_rate_limits: newRateLimits });
   };
 
   return (
@@ -175,106 +166,26 @@ export default function Configuration() {
                 />
               </Form.Item>
             )}
-            <Title level={3}>
-              <Space>
-                Global Rate Limits
-                <Switch
-                  checked={configValues.rate_limiting_enabled}
-                  title="Rate Limiting Enabled"
-                  onChange={(checked) => {
-                    setConfigValues({
-                      ...configValues,
-                      rate_limiting_enabled: checked,
-                    });
-                    handleUpdateConfigValue("rate_limiting_enabled", checked);
-                  }}
-                />
-                <Button
-                  type="dashed"
-                  disabled={!isEditingRateLimits}
-                  onClick={handleAddRateLimit}
-                >
-                  Add Rate Limit
-                </Button>
-              </Space>
-            </Title>
-            <Space direction="vertical">
-              {(configValues.global_rate_limits || []).map(
-                (rateLimit, index) => (
-                  <Space key={index}>
-                    <Form.Item label="Times">
-                      <InputNumber
-                        min={0}
-                        value={rateLimit.times}
-                        disabled={!isEditingRateLimits}
-                        onChange={(value) => {
-                          const newRateLimits = [
-                            ...configValues.global_rate_limits!,
-                          ];
-                          newRateLimits[index].times = value || 0;
-                          setConfigValues({
-                            ...configValues,
-                            global_rate_limits: newRateLimits,
-                          });
-                        }}
-                      />
-                    </Form.Item>
-                    <Form.Item label="Seconds">
-                      <InputNumber
-                        min={0}
-                        value={rateLimit.seconds}
-                        disabled={!isEditingRateLimits}
-                        onChange={(value) => {
-                          const newRateLimits = [
-                            ...configValues.global_rate_limits!,
-                          ];
-                          newRateLimits[index].seconds = value || 0;
-                          setConfigValues({
-                            ...configValues,
-                            global_rate_limits: newRateLimits,
-                          });
-                        }}
-                      />
-                    </Form.Item>
-                    {isEditingRateLimits && (
-                      <Button onClick={() => handleRemoveRateLimit(index)}>
-                        Remove
-                      </Button>
-                    )}
-                  </Space>
-                )
-              )}
-            </Space>
-            {isEditingRateLimits ? (
-              <Form.Item>
-                <Button
-                  type="primary"
-                  onClick={async () => {
-                    // Save the rate limits
-                    await handleUpdateConfigValue(
-                      "global_rate_limits",
-                      configValues.global_rate_limits
-                    );
-                    setIsEditingRateLimits(false);
-                  }}
-                >
-                  Save Rate Limits
-                </Button>
-              </Form.Item>
-            ) : (
-              <Form.Item>
-                <Button
-                  type={isEditingRateLimits ? "primary" : "default"}
-                  onClick={() => {
-                    if (isEditingRateLimits) {
-                    }
-                    setIsEditingRateLimits(!isEditingRateLimits);
-                  }}
-                >
-                  {isEditingRateLimits ? "Save" : "Edit Rate Limits"}
-                </Button>
-              </Form.Item>
-            )}
+            <RateLimitForm
+              title="Global Rate Limits"
+              enabled={!!configValues.rate_limiting_enabled}
+              onEnabledChange={(checked) => {
+                setConfigValues({
+                  ...configValues,
+                  rate_limiting_enabled: checked,
+                });
+                handleUpdateConfigValue("rate_limiting_enabled", checked);
+              }}
+              rateLimits={configValues.global_rate_limits || []}
+              onRateLimitsChange={onRateLimitsChange}
+              onSave={async () => {
+                // Save the rate limits
+                await handleUpdateConfigValue(
+                  "global_rate_limits",
+                  configValues.global_rate_limits
+                );
+              }}
+            ></RateLimitForm>
           </Form>
         </Space>
       </section>

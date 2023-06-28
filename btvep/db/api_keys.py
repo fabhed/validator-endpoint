@@ -1,9 +1,12 @@
+from ast import List
 import json
 import secrets
 import time
 
 from peewee import BooleanField, DateTimeField, DoesNotExist, IntegerField, TextField
+from pyparsing import Optional
 from tabulate import tabulate
+from btvep.btvep_models import RateLimitEntry
 
 from btvep.models.key import ApiKeyInDB
 
@@ -25,6 +28,7 @@ class ApiKey(BaseModel):
     credits = IntegerField(default=-1)
     enabled = BooleanField(default=True)
     rate_limits = TextField(null=True)
+    rate_limits_enabled = BooleanField(default=False)
     created_at = DateTimeField(default=lambda: int(time.time()))
     updated_at = DateTimeField(default=lambda: int(time.time()))
 
@@ -99,6 +103,8 @@ def update(
     valid_until: int = None,
     credits: int = None,
     enabled: bool = None,
+    rate_limits: str = None,
+    rate_limits_enabled: bool = None,
 ):
     # Use a dict to filter out None values
     update_dict = {
@@ -110,6 +116,10 @@ def update(
         "credits": credits,
         "enabled": enabled,
         "updated_at": int(time.time()),
+        "rate_limits": json.dumps([rate_limit.dict() for rate_limit in rate_limits])
+        if rate_limits
+        else None,
+        "rate_limits_enabled": rate_limits_enabled,
     }
     update_dict = {k: v for k, v in update_dict.items() if v is not None}
     q = ApiKey.update(update_dict).where(

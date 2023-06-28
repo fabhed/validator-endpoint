@@ -2,6 +2,7 @@ import {
   CopyOutlined,
   EditOutlined,
   QuestionCircleOutlined,
+  FieldTimeOutlined,
 } from "@ant-design/icons";
 import {
   Button,
@@ -10,6 +11,7 @@ import {
   FormInstance,
   Input,
   InputRef,
+  Space,
   Switch,
   Table,
   Tooltip,
@@ -23,8 +25,11 @@ import React, { useContext, useEffect, useRef, useState } from "react";
 import useSWR, { mutate } from "swr";
 import { APIKeyOperations } from "../../components/APIKeyOperations";
 import fetcher from "../../utils/fetcher";
+import { green, red } from "@ant-design/colors";
+import { RateLimitModal } from "../../components/RateLimitModal";
+import { RateLimit } from "../../components/RateLimitForm";
 
-interface DataType {
+export interface ApiKeyDataType {
   key: React.Key;
   form: FormInstance;
   id: number;
@@ -36,6 +41,9 @@ interface DataType {
   request_count: number;
   enabled: boolean;
   requests: number;
+  // rate_limits: null | RateLimit[];
+  rate_limits: null | string;
+  rate_limits_enabled: boolean;
 }
 
 const EditableContext = React.createContext<FormInstance<any> | null>(null);
@@ -59,8 +67,8 @@ interface EditableCellProps {
   title: React.ReactNode;
   editable: boolean;
   children: React.ReactNode;
-  dataIndex: keyof DataType;
-  record: DataType;
+  dataIndex: keyof ApiKeyDataType;
+  record: ApiKeyDataType;
 }
 
 const EditableCell: React.FC<EditableCellProps> = ({
@@ -214,7 +222,16 @@ const EditableCell: React.FC<EditableCellProps> = ({
 };
 
 export default function ViewApiKeys() {
-  const { data, error } = useSWR<DataType[]>("/admin/api-keys/", fetcher);
+  const { data, error } = useSWR<ApiKeyDataType[]>("/admin/api-keys/", fetcher);
+
+  const [rateLimitModalOpen, setRateLimitModalOpen] = useState(false);
+  const [activeRateLimitApiKey, setActiveRateLimitApiKey] =
+    useState<ApiKeyDataType | null>(null);
+
+  const openRateLimitModal = (apiKey: ApiKeyDataType) => {
+    setActiveRateLimitApiKey(apiKey);
+    setRateLimitModalOpen(true);
+  };
 
   if (error) {
     message.error("An error occurred while fetching the data.");
@@ -222,7 +239,10 @@ export default function ViewApiKeys() {
   }
   if (!data) return <div>Loading...</div>;
 
-  const handleSwitchChange = async (record: DataType, checked: boolean) => {
+  const handleSwitchChange = async (
+    record: ApiKeyDataType,
+    checked: boolean
+  ) => {
     try {
       await axios.patch(`/admin/api-keys/${record.id}/`, { enabled: checked });
       message.success("Status updated successfully");
@@ -232,7 +252,7 @@ export default function ViewApiKeys() {
     }
   };
 
-  const handleDelete = async (record: DataType) => {
+  const handleDelete = async (record: ApiKeyDataType) => {
     try {
       await axios.delete(`/admin/api-keys/${record.id}`);
       message.success("API Key deleted.");
@@ -247,14 +267,15 @@ export default function ViewApiKeys() {
       title: "ID",
       dataIndex: "id",
       key: "id",
-      sorter: (a: DataType, b: DataType) => a.id - b.id,
+      sorter: (a: ApiKeyDataType, b: ApiKeyDataType) => a.id - b.id,
     },
     {
       title: "Name",
       dataIndex: "name",
       key: "name",
       editable: true,
-      sorter: (a: DataType, b: DataType) => a.name.localeCompare(b.name),
+      sorter: (a: ApiKeyDataType, b: ApiKeyDataType) =>
+        a.name.localeCompare(b.name),
     },
     {
       title: "API Key",
@@ -299,7 +320,8 @@ export default function ViewApiKeys() {
           ? "No Expiration"
           : DateTime.fromSeconds(text).toFormat("yyyy-MM-dd HH:mm"),
       editable: true,
-      sorter: (a: DataType, b: DataType) => a.valid_until - b.valid_until,
+      sorter: (a: ApiKeyDataType, b: ApiKeyDataType) =>
+        a.valid_until - b.valid_until,
     },
     {
       title: (
@@ -317,20 +339,20 @@ export default function ViewApiKeys() {
         { text: "Unlimited", value: -1 },
         { text: "Limited", value: 0 },
       ],
-      onFilter: (value: any, record: DataType) => {
+      onFilter: (value: any, record: ApiKeyDataType) => {
         if (value === -1) {
           return record.credits === -1;
         } else {
           return record.credits !== -1;
         }
       },
-      sorter: (a: DataType, b: DataType) => a.credits - b.credits,
+      sorter: (a: ApiKeyDataType, b: ApiKeyDataType) => a.credits - b.credits,
     },
     {
       title: "Enabled",
       dataIndex: "enabled",
       key: "enabled",
-      render: (enabled: boolean, record: DataType) => (
+      render: (enabled: boolean, record: ApiKeyDataType) => (
         <Switch
           checked={enabled}
           onChange={(checked: boolean) => handleSwitchChange(record, checked)}
@@ -340,19 +362,44 @@ export default function ViewApiKeys() {
         { text: "Enabled", value: true },
         { text: "Disabled", value: false },
       ],
-      onFilter: (value: any, record: DataType) => record.enabled === value,
+      onFilter: (value: any, record: ApiKeyDataType) =>
+        record.enabled === value,
     },
 
     {
       title: "Requests",
       dataIndex: "request_count",
       key: "requests",
-      sorter: (a: DataType, b: DataType) => a.request_count - b.request_count,
+      sorter: (a: ApiKeyDataType, b: ApiKeyDataType) =>
+        a.request_count - b.request_count,
+      render: (requests, record: ApiKeyDataType) => {
+        return (
+          <Space>
+            {requests}
+            <Tooltip
+              title={`Rate Limits - ${
+                record.rate_limits
+                  ? "Specific rate limits enabled"
+                  : "No specific rate limits"
+              }`}
+            >
+              <Button
+                type="link"
+                size="small"
+                onClick={() => openRateLimitModal(record)}
+                style={{ color: record.rate_limits_enabled ? "green" : "" }}
+              >
+                <FieldTimeOutlined />
+              </Button>
+            </Tooltip>
+          </Space>
+        );
+      },
     },
     {
       title: "Operation",
       dataIndex: "operation",
-      render: (_: unknown, record: DataType, index: number) => {
+      render: (_: unknown, record: ApiKeyDataType, index: number) => {
         return (
           <APIKeyOperations
             prompt="What is 1+1?"
@@ -371,7 +418,7 @@ export default function ViewApiKeys() {
     }
     return {
       ...col,
-      onCell: (record: DataType) => ({
+      onCell: (record: ApiKeyDataType) => ({
         record,
         inputType:
           col.dataIndex === "credits" || col.dataIndex === "valid_until"
@@ -386,6 +433,11 @@ export default function ViewApiKeys() {
 
   return (
     <div>
+      <RateLimitModal
+        apiKey={activeRateLimitApiKey}
+        open={rateLimitModalOpen}
+        setOpen={setRateLimitModalOpen}
+      ></RateLimitModal>
       <Button
         type="primary"
         onClick={async () => {

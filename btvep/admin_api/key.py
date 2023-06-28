@@ -7,6 +7,7 @@ from playhouse.shortcuts import model_to_dict
 
 from btvep.db import api_keys
 from btvep.models.key import ApiKeyInDB
+from btvep.btvep_models import RateLimitEntry
 
 router = APIRouter()
 
@@ -55,6 +56,8 @@ def edit_api_key(
     valid_until: Optional[str] = Body(None),
     credits: Optional[int] = Body(None),
     enabled: Optional[bool] = Body(None),
+    rate_limits: Optional[List[RateLimitEntry]] = Body(None),
+    rate_limits_enabled: Optional[bool] = Body(None),
 ):
     """
     Edit an API key.
@@ -83,13 +86,15 @@ def edit_api_key(
                 )
             parsed_valid_until = int(parsed_valid_until.timestamp())
     api_keys.update(
-        query,
-        api_key_hint,
-        name,
-        request_count,
-        parsed_valid_until,
-        credits,
-        enabled,
+        query=query,
+        api_key_hint=api_key_hint,
+        name=name,
+        request_count=request_count,
+        valid_until=parsed_valid_until,
+        credits=credits,
+        enabled=enabled,
+        rate_limits=rate_limits,
+        rate_limits_enabled=rate_limits_enabled,
     )
     updated_key = api_keys.get(query)
     if updated_key is None:

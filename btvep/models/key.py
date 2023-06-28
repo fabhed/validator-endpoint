@@ -20,6 +20,7 @@ class ApiKeyInDB(BaseModel):
     credits: int
     enabled: bool
     rate_limits: Optional[str] = None
+    rate_limits_enabled: bool = None
     created_at: int
     updated_at: int
 

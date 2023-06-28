@@ -8,12 +8,14 @@ import {
   message,
   Switch,
   InputNumber,
+  Tooltip,
 } from "antd";
 import useSWR, { mutate } from "swr";
 import axios from "axios";
 import fetcher from "../utils/fetcher";
 import { getErrorMessageFromResponse } from "../utils/api-handlers";
 import { EditableField } from "../components/EditableField";
+import { QuestionCircleOutlined } from "@ant-design/icons";
 
 const { Title } = Typography;
 
@@ -31,6 +33,8 @@ interface Configuration {
   global_rate_limits?: GlobalRateLimit[];
   rate_limiting_enabled?: boolean;
   redis_url?: string;
+  openai_filter_enabled?: boolean;
+  openai_api_key?: string;
 }
 
 export default function Configuration() {
@@ -40,7 +44,7 @@ export default function Configuration() {
   );
 
   const [configValues, setConfigValues] = useState<Configuration>({});
-  const [editing, setEditing] = useState(false);
+  const [isEditingRateLimits, setIsEditingRateLimits] = useState(false);
 
   useEffect(() => {
     setConfigValues(configData || {});
@@ -98,7 +102,7 @@ export default function Configuration() {
                 onCancel={() => {}}
               />
             </Form.Item>
-            <Form.Item label="Hotkey Public Key">
+            {/* <Form.Item label="Hotkey Public Key">
               <EditableField
                 initialValue={configValues.hotkey_pubkey}
                 name="hotkey_pubkey"
@@ -107,7 +111,7 @@ export default function Configuration() {
                 onChange={() => {}}
                 onCancel={() => {}}
               />
-            </Form.Item>
+            </Form.Item> */}
             {/* <Form.Item label="Validator Auth Strategy">
               <EditableField
                 initialValue={configValues.validator_auth_strategy}
@@ -120,7 +124,10 @@ export default function Configuration() {
                 onCancel={() => {}}
               />
             </Form.Item> */}
-            <Form.Item label="Redis URL">
+            <Form.Item
+              label="Redis URL"
+              help="Redis is only needed if rate limits are used."
+            >
               <EditableField
                 initialValue={configValues.redis_url}
                 name="redis_url"
@@ -130,6 +137,44 @@ export default function Configuration() {
                 onCancel={() => {}}
               />
             </Form.Item>
+            <Title level={3} style={{ marginTop: "3rem" }}>
+              <Space>
+                OpenAI Filtering
+                <Tooltip title="Filters incoming prompts via OpenAI's Moderation endpoint. This is a free Service from OpenAI but requires an API-key. Enabling this will add latency to requests, as the moderation check is done before the bittensor network is queried.">
+                  <QuestionCircleOutlined
+                    style={{
+                      marginLeft: "8px",
+                      cursor: "help",
+                      fontSize: "60%",
+                      verticalAlign: "middle",
+                    }}
+                  />
+                </Tooltip>
+                <Switch
+                  checked={configValues.openai_filter_enabled}
+                  title="OpenAI Filtering Enabled"
+                  onChange={(checked) => {
+                    setConfigValues({
+                      ...configValues,
+                      openai_filter_enabled: checked,
+                    });
+                    handleUpdateConfigValue("openai_filter_enabled", checked);
+                  }}
+                />
+              </Space>
+            </Title>
+            {configValues.openai_filter_enabled && (
+              <Form.Item label="OpenAI API Key">
+                <EditableField
+                  initialValue={configValues.openai_api_key}
+                  name="openai_api_key"
+                  onUpdate={(v) => handleUpdateConfigValue("openai_api_key", v)}
+                  displayValueAsInput
+                  onChange={() => {}}
+                  onCancel={() => {}}
+                />
+              </Form.Item>
+            )}
             <Title level={3}>
               <Space>
                 Global Rate Limits
@@ -146,7 +191,7 @@ export default function Configuration() {
                 />
                 <Button
                   type="dashed"
-                  disabled={!editing}
+                  disabled={!isEditingRateLimits}
                   onClick={handleAddRateLimit}
                 >
                   Add Rate Limit
@@ -161,7 +206,7 @@ export default function Configuration() {
                       <InputNumber
                         min={0}
                         value={rateLimit.times}
-                        disabled={!editing}
+                        disabled={!isEditingRateLimits}
                         onChange={(value) => {
                           const newRateLimits = [
                             ...configValues.global_rate_limits!,
@@ -178,7 +223,7 @@ export default function Configuration() {
                       <InputNumber
                         min={0}
                         value={rateLimit.seconds}
-                        disabled={!editing}
+                        disabled={!isEditingRateLimits}
                         onChange={(value) => {
                           const newRateLimits = [
                             ...configValues.global_rate_limits!,
@@ -191,7 +236,7 @@ export default function Configuration() {
                         }}
                       />
                     </Form.Item>
-                    {editing && (
+                    {isEditingRateLimits && (
                       <Button onClick={() => handleRemoveRateLimit(index)}>
                         Remove
                       </Button>
@@ -200,7 +245,7 @@ export default function Configuration() {
                 )
               )}
             </Space>
-            {editing ? (
+            {isEditingRateLimits ? (
               <Form.Item>
                 <Button
                   type="primary"
@@ -210,7 +255,7 @@ export default function Configuration() {
                       "global_rate_limits",
                       configValues.global_rate_limits
                     );
-                    setEditing(false);
+                    setIsEditingRateLimits(false);
                   }}
                 >
                   Save Rate Limits
@@ -219,14 +264,14 @@ export default function Configuration() {
             ) : (
               <Form.Item>
                 <Button
-                  type={editing ? "primary" : "default"}
+                  type={isEditingRateLimits ? "primary" : "default"}
                   onClick={() => {
-                    if (editing) {
+                    if (isEditingRateLimits) {
                     }
-                    setEditing(!editing);
+                    setIsEditingRateLimits(!isEditingRateLimits);
                   }}
                 >
-                  {editing ? "Save" : "Edit Rate Limits"}
+                  {isEditingRateLimits ? "Save" : "Edit Rate Limits"}
                 </Button>
               </Form.Item>
             )}

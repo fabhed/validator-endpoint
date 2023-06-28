@@ -94,7 +94,7 @@ Response:
 }
 ```
 
-### Prompt a specific neuron via its uid on the network
+### Prompt a specific neurons via uids on the network
 
 ```bash
 curl http://localhost:8000/chat \
@@ -102,7 +102,7 @@ curl http://localhost:8000/chat \
   -H "Authorization: Bearer $API_KEY" \
   -H "Endpoint-Version: 2023-05-19" \
   -d '{
-     "uid": 123,
+     "uids": [0, 1],
      "messages": [{"role": "user", "content": "Say this is a test!"}]
    }'
 ```
@@ -123,6 +123,21 @@ Response:
   ]
 }
 ```
+
+### Prompt top neurons sorted by incentive on the network
+
+```bash
+curl http://localhost:8000/chat \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $API_KEY" \
+  -H "Endpoint-Version: 2023-05-19" \
+  -d '{
+     "top_n": 5,
+     "messages": [{"role": "user", "content": "Say this is a test!"}]
+   }'
+```
+
+This will send the prompt to the top 5 miners, change `top_n` to 1 to only query the top miner.
 
 ## Dev requirements
 

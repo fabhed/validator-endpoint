@@ -13,7 +13,8 @@ Update and read config values. Config values are stored in a json file at {CONFI
 General Config values available:
 
 - hotkey_mnemonic - The hotkey mnemonic for the validator. This is required as the validator will be signing the prompts to miners.
-
+- openai_filter_enabled - Whether to use OpenAI's content filter. If enabled, the openai_api_key will be used.
+- openai_api_key - The OpenAI API key to use for the content filter.
 
 Rate Limiting Config values available:
 

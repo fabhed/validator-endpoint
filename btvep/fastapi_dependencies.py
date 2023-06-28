@@ -1,7 +1,10 @@
-from datetime import datetime
+import concurrent.futures
 import json
+import logging
+from datetime import datetime
 from math import ceil
 from typing import Annotated
+import openai
 
 import redis.asyncio
 import rich
@@ -15,9 +18,8 @@ from btvep.constants import COST
 from btvep.db.api_keys import ApiKey
 from btvep.db.api_keys import get_by_key as get_api_key_by_key
 from btvep.db.api_keys import update as update_api_key
-from btvep.db.utils import db, db_state_default
 from btvep.db.request import Request as DBRequest
-
+from btvep.db.utils import db, db_state_default
 
 config = Config().load()
 
@@ -59,7 +61,16 @@ async def InitializeRateLimiting():
         raise e
 
 
-def authenticate_api_key(
+filter = None
+if config.openai_filter_enabled:
+    if config.openai_api_key is None:
+        raise Exception("OpenAI filter enabled, but openai_api_key is not set.")
+    from btvep.filter import OpenAIFilter
+
+    filter = OpenAIFilter(config.openai_api_key)
+
+
+async def authenticate_api_key(
     request: Request, input_api_key: str = Depends(oauth2_scheme)
 ) -> ApiKey:
     def raiseKeyError(detail: str):
@@ -102,6 +113,21 @@ def authenticate_api_key(
         raiseKeyError("Not enough credits")
 
     ###  API key is now validated. ###
+
+    if filter:
+        messages = (await request.json())["messages"]
+        messageContents = [message["content"] for message in messages]
+        try:
+            check_res = filter.safe_check(messageContents)
+            if check_res["any_flagged"]:
+                createErrorRequest("FlaggedByOpenAIModerationFilter")
+                raiseKeyError("OpenAI moderation filter triggered")
+        except concurrent.futures.TimeoutError as e:
+            logging.warning("OpenAI filter timed out. Allowing request.")
+            pass
+        except openai.error.AuthenticationError:
+            logging.warning("OpenAI filter auth error. Allowing request.")
+            pass
 
     # Subtract cost if not unlimited
     credits = None if api_key.has_unlimited_credits() else api_key.credits - COST

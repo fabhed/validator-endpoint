@@ -26,6 +26,8 @@ class Config(BaseModel):
     rate_limiting_enabled = False
     redis_url = "redis://localhost"
     global_rate_limits: List[RateLimitEntry] = []
+    openai_filter_enabled = False
+    openai_api_key: str | None = None
 
     source_info = {}
 
@@ -94,6 +96,14 @@ class Config(BaseModel):
         if "GLOBAL_RATE_LIMITS" in os.environ:
             self.global_rate_limits = json.loads(os.getenv("GLOBAL_RATE_LIMITS"))
             self.source_info["global_rate_limits"] = "environment variable"
+        if "OPENAI_FILTER_ENABLED" in os.environ:
+            self.openai_filter_enabled = cast_str_to_bool(
+                os.getenv("OPENAI_FILTER_ENABLED")
+            )
+            self.source_info["openai_filter_enabled"] = "environment variable"
+        if "OPENAI_API_KEY" in os.environ:
+            self.openai_api_key = os.getenv("OPENAI_API_KEY")
+            self.source_info["openai_api_key"] = "environment variable"
 
         return self
 

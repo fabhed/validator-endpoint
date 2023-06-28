@@ -3,13 +3,19 @@ export function generateCurlCommand({
   apiKey,
   url,
   uids,
+  top_n,
 }: {
   prompt: string;
   apiKey: string;
   url: string;
   uids?: number[];
+  top_n?: number;
 }) {
-  const body = { messages: [{ role: "user", content: prompt }], uids };
+  const body = {
+    messages: [{ role: "user", content: prompt }],
+    uids,
+    top_n,
+  };
   const curlCommand = `curl ${url}/chat \\
   -H "Content-Type: application/json" \\
   -H "Authorization: Bearer ${apiKey}" \\

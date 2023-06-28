@@ -52,6 +52,7 @@ export const EditableField: React.FC<EditableFieldProps> = ({
   };
 
   const handleCancel = () => {
+    setValue(unchangedValue);
     onChange(unchangedValue);
     onCancel();
     toggleEdit();

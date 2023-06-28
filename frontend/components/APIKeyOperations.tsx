@@ -5,6 +5,14 @@ import { generateCurlCommand } from "../utils/api-keys";
 
 const { Paragraph } = Typography;
 
+const strToArr = (str: string) =>
+  str.length
+    ? str
+        .replace(/^,+|,+$/g, "")
+        .split(",")
+        .map(Number)
+    : undefined;
+
 export const APIKeyOperations = ({
   prompt: initialPrompt,
   apiKey,
@@ -13,7 +21,7 @@ export const APIKeyOperations = ({
 }) => {
   const [modalVisible, setModalVisible] = useState(false);
   const [prompt, setPrompt] = useState(initialPrompt);
-  const [uid, setUid] = useState("");
+  const [uids, setUids] = useState("");
 
   const handleMenuClick = ({ key }) => {
     if (key === "copyCurl") {
@@ -26,7 +34,7 @@ export const APIKeyOperations = ({
       prompt,
       apiKey,
       url,
-      uid: uid ? Number(uid) : undefined,
+      uids: strToArr(uids),
     });
     navigator.clipboard.writeText(curlCommand);
     message.success("Curl command copied to clipboard!");
@@ -81,9 +89,9 @@ export const APIKeyOperations = ({
           style={{ marginBottom: 10 }}
         />
         <Input
-          placeholder="UID (optional)"
-          value={uid}
-          onChange={(e) => setUid(e.target.value)}
+          placeholder="UIDs (optional, comma-separated)"
+          value={uids}
+          onChange={(e) => setUids(e.target.value)}
           style={{ marginBottom: 10 }}
         />
         <Paragraph>
@@ -92,7 +100,7 @@ export const APIKeyOperations = ({
               prompt,
               apiKey,
               url,
-              uid: uid ? Number(uid) : undefined,
+              uids: strToArr(uids),
             })}
           </pre>
         </Paragraph>

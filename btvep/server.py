@@ -1,7 +1,7 @@
 import asyncio
 import json
 from enum import Enum
-from typing import Annotated, List
+from typing import Annotated, Dict, List
 
 import bittensor
 import rich
@@ -9,13 +9,19 @@ import uvicorn
 from bittensor.utils.codes import code_to_string
 from fastapi import Body, Depends, FastAPI, Header, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 
 from btvep.admin_api import (
     router as admin_router,
 )  # composed router from the admin module
-from btvep.btvep_models import ChatResponse, Message
+from btvep.btvep_models import (
+    ChatResponse,
+    FailedMinerResponse,
+    Message,
+    ChatResponseChoice,
+)
 from btvep.config import Config
-from btvep.constants import DEFAULT_NETUID, DEFAULT_UID
+from btvep.constants import DEFAULT_NETUID, DEFAULT_UIDS
 from btvep.db.request import Request
 from btvep.db.tables import create_all as create_all_tables
 from btvep.db.utils import DB_PATH
@@ -55,10 +61,28 @@ app.add_middleware(
 app.include_router(admin_router, prefix="/admin", tags=["Admin"])
 
 
+class ChatResponseException(Exception):
+    def __init__(self, detail: str, failed_responses: List[Dict], status_code: int):
+        self.detail = detail
+        self.failed_responses = failed_responses
+        self.status_code = status_code
+
+
+@app.exception_handler(ChatResponseException)
+async def unicorn_exception_handler(request: Request, exc: ChatResponseException):
+    return JSONResponse(
+        status_code=exc.status_code,
+        content={"detail": exc.detail, "failed_responses": exc.failed_responses},
+    )
+
+
 @app.on_event("startup")
 async def startup():
     if config.rate_limiting_enabled:
         await InitializeRateLimiting()
+
+
+import json
 
 
 @app.post(
@@ -68,49 +92,91 @@ async def startup():
         Depends(VerifyAndLimit()),
     ],
 )
-def chat(
+async def chat(
     authorization: Annotated[str | None, Header()] = None,
-    uid: Annotated[int | None, Body()] = DEFAULT_UID,
+    uids: Annotated[List[int] | None, Body()] = DEFAULT_UIDS,
     messages: Annotated[List[Message] | None, Body()] = None,
 ) -> ChatResponse:
-    # An event loop for the thread is required by the bittensor library
     loop = asyncio.new_event_loop()
     asyncio.set_event_loop(loop)
-    response = validator_prompter.query_network(messages=messages, uid=uid)
-
-    return_code = None
-    if isinstance(type(response.return_code), type(Enum)):
-        return_code = response.return_code.value  # if return_code is an enum member
-    else:
-        return_code = response.return_code  # if return_code is not an enum member
-    return_code_str = code_to_string(return_code)
-
-    Request.create(
-        is_api_success=True,
-        prompt=json.dumps([message.dict() for message in messages]),
-        api_key=authorization.split(" ")[1],
-        response=response.completion,
-        responder_hotkey=response.dest_hotkey,
-        is_success=response.is_success,
-        return_message=response.return_message,
-        elapsed_time=response.elapsed,
-        src_hotkey=response.src_hotkey,
-        src_version=response.src_version,
-        dest_version=response.dest_version,
-        return_code=return_code_str,
+    prompter_responses = await validator_prompter.query_network(
+        messages=messages, uids=uids
     )
-    if response.is_success:
-        return {
-            "choices": [
+
+    choices: List[ChatResponseChoice] = []
+    failed_responses: List[FailedMinerResponse] = []
+    all_failed = True
+
+    success_index = 0
+    failed_index = 0
+    for p_response in prompter_responses:
+        dendrite_res = p_response["dendrite_response"]
+        uid = p_response["uid"]
+        return_code = None
+        if isinstance(type(dendrite_res.return_code), type(Enum)):
+            return_code = (
+                dendrite_res.return_code.value
+            )  # if return_code is an enum member
+        else:
+            return_code = (
+                dendrite_res.return_code
+            )  # if return_code is not an enum member
+        return_code_str = code_to_string(return_code)
+
+        Request.create(
+            is_api_success=True,
+            prompt=json.dumps([message.dict() for message in messages]),
+            api_key=authorization.split(" ")[1],
+            response=dendrite_res.completion,
+            responder_hotkey=dendrite_res.dest_hotkey,
+            is_success=dendrite_res.is_success,
+            return_message=dendrite_res.return_message,
+            elapsed_time=dendrite_res.elapsed,
+            src_hotkey=dendrite_res.src_hotkey,
+            src_version=dendrite_res.src_version,
+            dest_version=dendrite_res.dest_version,
+            return_code=return_code_str,
+        )
+
+        response_ms = int(dendrite_res.elapsed * 1000)
+
+        if dendrite_res.is_success:
+            choices.append(
                 {
-                    "index": 0,  # Hardcoded to 0 until support for multiple choices from bittensor
-                    "message": {"role": "assistant", "content": response.completion},
-                    "responder_hotkey": response.dest_hotkey,
+                    "index": success_index,
+                    "message": {
+                        "role": "assistant",
+                        "content": dendrite_res.completion,
+                    },
+                    "uid": uid,
+                    "responder_hotkey": dendrite_res.dest_hotkey,
+                    "response_ms": response_ms,
                 }
-            ],
-        }
-    else:
-        raise HTTPException(status_code=500, detail=response.return_message)
+            )
+            success_index += 1
+            all_failed = False
+        else:
+            failed_responses.append(
+                {
+                    "index": failed_index,
+                    "error": dendrite_res.return_message,
+                    "uid": uid,
+                    "responder_hotkey": dendrite_res.dest_hotkey,
+                    "response_ms": response_ms,
+                }
+            )
+            failed_index += 1
+
+    if all_failed:
+        raise ChatResponseException(
+            status_code=502,  # Bad Gateway (we are the gateway to the network)
+            detail="All miner responses have failed.",
+            failed_responses=failed_responses,
+        )
+
+    response_dict = {"choices": choices, "failed_responses": failed_responses}
+
+    return response_dict
 
 
 if __name__ == "__main__":

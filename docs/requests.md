@@ -48,7 +48,7 @@ curl http://localhost:8000/chat \
   -H "Authorization: Bearer $API_KEY" \
   -H "Endpoint-Version: 2023-05-19" \
   -d '{
-     "messages": [{"role": "user", "content": "Say this is a test!"}]
+     "messages": [{"role": "user", "content": "What is 1+1?"}]
    }'
 ```
 

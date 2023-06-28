@@ -355,7 +355,7 @@ export default function ViewApiKeys() {
       render: (_: unknown, record: DataType, index: number) => {
         return (
           <APIKeyOperations
-            prompt="Say this is a test!"
+            prompt="What is 1+1?"
             apiKey={record.api_key}
             url="http://localhost:8000" // TODO: Make this dynamic
             onDelete={() => handleDelete(record)}

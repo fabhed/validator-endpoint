@@ -16,7 +16,7 @@ from fastapi.responses import JSONResponse
 from btvep.db.api_keys import ApiKey
 from btvep.db.api_keys import update as update_api_key
 
-logging.basicConfig(format="%(levelname)s: %(message)s", level=logging.DEBUG)
+logging.basicConfig(format="%(levelname)s: %(message)s", level=logging.INFO)
 
 from btvep.admin_api import (
     router as admin_router,

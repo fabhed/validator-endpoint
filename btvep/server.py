@@ -101,6 +101,12 @@ import json
 async def chat(
     authorization: Annotated[str | None, Header()] = None,
     uids: Annotated[List[int] | None, Body()] = DEFAULT_UIDS,
+    top_n: Annotated[
+        int | None,
+        Body(
+            description="Query top miners based on incentive in the network. If set to for example 5, the top 5 miners will be sent the request. This parameter takes precidence over the uids parameter."
+        ),
+    ] = None,
     messages: Annotated[List[Message] | None, Body()] = None,
 ) -> ChatResponse:
     loop = asyncio.new_event_loop()
@@ -109,7 +115,7 @@ async def chat(
     prompter_responses = None
     try:
         prompter_responses = await validator_prompter.query_network(
-            messages=messages, uids=uids
+            messages=messages, uids=uids, top_n=top_n
         )
     except MetagraphNotSyncedException as e:
         raise HTTPException(

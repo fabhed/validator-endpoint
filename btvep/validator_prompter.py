@@ -1,5 +1,5 @@
 import asyncio
-from typing import List
+from typing import List, Optional
 
 from bittensor import Keypair, metagraph, text_prompting
 
@@ -28,11 +28,19 @@ class ValidatorPrompter:
         axon = self.metagraph_syncer.metagraph.axons[uid]
         return text_prompting(keypair=self.hotkey, axon=axon)
 
-    async def query_network(self, messages: List[Message], uids: List[int]):
+    async def query_network(
+        self, messages: List[Message], uids: List[int], top_n: Optional[int] = None
+    ):
         if self.metagraph_syncer.metagraph is None:
             raise MetagraphNotSyncedException()
+
         roles = [el.role for el in messages]
         messages = [el.content for el in messages]
+
+        # If top_n is specified, override the uids with the top UIDs
+        if top_n is not None:
+            _, indices = self.metagraph_syncer.metagraph.incentive.sort(descending=True)
+            uids = indices[:top_n].tolist()
 
         tasks = []
 

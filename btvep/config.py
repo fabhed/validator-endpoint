@@ -4,7 +4,7 @@ from typing import List
 from rich.console import Console
 import typer
 
-from btvep.btvep_models import RateLimit
+from btvep.btvep_models import RateLimitEntry
 
 CONFIG_PATH = os.path.join(os.path.dirname(__file__), "../config.json")
 CONFIG_PATH = os.path.abspath(CONFIG_PATH)
@@ -25,7 +25,9 @@ class Config(BaseModel):
     hotkey_mnemonic: str | None = None
     rate_limiting_enabled = False
     redis_url = "redis://localhost"
-    global_rate_limits: List[RateLimit] = []
+    global_rate_limits: List[RateLimitEntry] = []
+    openai_filter_enabled = False
+    openai_api_key: str | None = None
 
     source_info = {}
 
@@ -50,11 +52,13 @@ class Config(BaseModel):
             jsonfile.write(self.to_json())
         return self
 
-    def load(self):
+    def load(self, hide_mnemonic=False):
         # load from json file
         self.load_json()
         # load from environment variables
         self.load_env()
+        if hide_mnemonic:
+            self.__dict__["hotkey_mnemonic"] = "********"
         return self
 
     def load_json(self):
@@ -92,23 +96,36 @@ class Config(BaseModel):
         if "GLOBAL_RATE_LIMITS" in os.environ:
             self.global_rate_limits = json.loads(os.getenv("GLOBAL_RATE_LIMITS"))
             self.source_info["global_rate_limits"] = "environment variable"
+        if "OPENAI_FILTER_ENABLED" in os.environ:
+            self.openai_filter_enabled = cast_str_to_bool(
+                os.getenv("OPENAI_FILTER_ENABLED")
+            )
+            self.source_info["openai_filter_enabled"] = "environment variable"
+        if "OPENAI_API_KEY" in os.environ:
+            self.openai_api_key = os.getenv("OPENAI_API_KEY")
+            self.source_info["openai_api_key"] = "environment variable"
 
         return self
 
-    def validate(self):
+    def validate(self, cli_mode=True):
         # validate mnemonic
         if self.hotkey_mnemonic is None:
-            typer.echo(
-                "[red]Missing hotkey mnemonic. Set the HOTKEY_MNEMONIC environment variable or set it with: btvep config set hotkey_mnemonic <mnemonic>[/red]"
-            )
-            raise typer.Exit(1)
+            if cli_mode:
+                typer.echo(
+                    "[red]Missing hotkey mnemonic. Set the HOTKEY_MNEMONIC environment variable or set it with: btvep config set hotkey_mnemonic <mnemonic>[/red]"
+                )
+                raise typer.Exit(1)
+            else:
+                raise ValueError("Missing hotkey mnemonic")
         hotkey_mnemonic = self.hotkey_mnemonic.split()
         allowed_word_counts = [12, 15, 18, 21, 24]
         if len(hotkey_mnemonic) not in allowed_word_counts:
-            typer.echo(
-                f"[red]hotkey_mnemonic has an invalid size. It should be 12, 15, 18, 21 or 24 words[/red]"
-            )
-            raise typer.Exit(1)
+            error_text = "hotkey_mnemonic has an invalid size. It should be 12, 15, 18, 21 or 24 words"
+            if cli_mode:
+                typer.echo(f"[red]{error_text}[/red]")
+                raise typer.Exit(1)
+            else:
+                raise ValueError(error_text)
         return self
 
     # Print format

@@ -1,7 +1,12 @@
-from datetime import datetime
+import concurrent.futures
 import json
+import logging
+from datetime import datetime
+from math import ceil
 from typing import Annotated
+import uuid
 
+import openai
 import redis.asyncio
 import rich
 from fastapi import Depends, HTTPException, status
@@ -13,7 +18,7 @@ from btvep.config import Config
 from btvep.constants import COST
 from btvep.db.api_keys import ApiKey
 from btvep.db.api_keys import get_by_key as get_api_key_by_key
-from btvep.db.api_keys import update as update_api_key
+from btvep.db.request import Request as DBRequest
 from btvep.db.utils import db, db_state_default
 
 config = Config().load()
@@ -56,7 +61,18 @@ async def InitializeRateLimiting():
         raise e
 
 
-def authenticate_api_key(input_api_key: str = Depends(oauth2_scheme)) -> ApiKey:
+filter = None
+if config.openai_filter_enabled:
+    if config.openai_api_key is None:
+        raise Exception("OpenAI filter enabled, but openai_api_key is not set.")
+    from btvep.filter import OpenAIFilter
+
+    filter = OpenAIFilter(config.openai_api_key)
+
+
+async def authenticate_api_key(
+    request: Request, input_api_key: str = Depends(oauth2_scheme)
+) -> ApiKey:
     def raiseKeyError(detail: str):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -64,33 +80,56 @@ def authenticate_api_key(input_api_key: str = Depends(oauth2_scheme)) -> ApiKey:
             headers={"WWW-Authenticate": "Bearer"},
         )
 
+    async def createErrorRequest(error: str):
+        api_request_id = str(uuid.uuid4())
+        DBRequest.create(
+            is_api_success=False,
+            api_request_id=api_request_id,
+            api_error=error,
+            prompt=json.dumps((await request.json())["messages"]),
+            api_key=input_api_key,
+        )
+
     if (input_api_key is None) or (input_api_key == ""):
+        createErrorRequest("APIKeyMissing")
         raiseKeyError("Missing API key")
 
     api_key = get_api_key_by_key(input_api_key)
     if api_key is None:
+        createErrorRequest("APIKeyInvalid")
         raiseKeyError("Invalid API key")
+
     elif api_key.enabled == 0:
+        createErrorRequest("APIKeyDisabled")
         raiseKeyError("API key is disabled")
-    elif (api_key.valid_until != -1) and (api_key.valid_until < datetime.now()):
+    elif (api_key.valid_until != -1) and (
+        api_key.valid_until < datetime.now().timestamp()
+    ):
+        createErrorRequest("APIKeyExpired")
         raiseKeyError(
             "API key has expired as of "
             + str(datetime.utcfromtimestamp(api_key.valid_until))
         )
     elif not api_key.has_unlimited_credits() and api_key.credits - COST < 0:
+        createErrorRequest("APIKeyNotEnoughCredits")
         raiseKeyError("Not enough credits")
 
     ###  API key is now validated. ###
 
-    # Subtract cost if not unlimited
-    credits = None if api_key.has_unlimited_credits() else api_key.credits - COST
-
-    # Increment request count and potentially credits
-    update_api_key(
-        api_key.api_key,
-        request_count=api_key.request_count + 1,
-        credits=credits,
-    )
+    if filter:
+        messages = (await request.json())["messages"]
+        messageContents = [message["content"] for message in messages]
+        try:
+            check_res = filter.safe_check(messageContents)
+            if check_res["any_flagged"]:
+                createErrorRequest("FlaggedByOpenAIModerationFilter")
+                raiseKeyError("OpenAI moderation filter triggered")
+        except concurrent.futures.TimeoutError as e:
+            logging.warning("OpenAI filter timed out. Allowing request.")
+            pass
+        except openai.error.AuthenticationError:
+            logging.warning("OpenAI filter auth error. Allowing request.")
+            pass
 
     return api_key
 
@@ -106,16 +145,52 @@ def get_rate_limits(api_key: str = None) -> list[RateLimiter]:
     elif config.rate_limiting_enabled:
         rate_limits = config.global_rate_limits
 
-    return [
-        RateLimiter(times=limit["times"], seconds=limit["seconds"])
+    HTTP_429_TOO_MANY_REQUESTS = 429
+
+    async def ratelimit_callback(request, response, pexpire, limit):
+        print(
+            f"Rate limit triggered for ratelimit rule: {limit}",
+        )
+        api_request_id = str(uuid.uuid4())
+        DBRequest.create(
+            is_api_success=False,
+            api_request_id=api_request_id,
+            api_error="RateLimitExceeded",
+            prompt=json.dumps((await request.json())["messages"]),
+            api_key=request.headers.get("authorization").split(" ")[1],
+        )
+
+        expire = ceil(pexpire / 1000)
+
+        raise HTTPException(
+            HTTP_429_TOO_MANY_REQUESTS,
+            "Too Many Requests",
+            headers={"Retry-After": str(expire)},
+        )
+
+    rate_limiters = [
+        RateLimiter(
+            times=limit["times"],
+            seconds=limit["seconds"],
+            callback=lambda request, response, pexpire: ratelimit_callback(
+                request, response, pexpire, limit
+            ),
+        )
         for limit in rate_limits
     ]
+
+    # Sort the list in ascending order by the ratio of milliseconds to times
+    sorted_rate_limiters = sorted(
+        rate_limiters, key=lambda rl: rl.milliseconds / rl.times
+    )
+
+    return sorted_rate_limiters
 
 
 global_rate_limits = get_rate_limits()
 
 
-def VerifyAndLimit():
+def VerifyAndLimit(api_key: ApiKey):
     async def a(
         request: Request,
         response: Response,

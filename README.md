@@ -29,7 +29,7 @@ Allow validators to easily host an API for other services to prompt the Bittenso
 
 ```bash
 # Install with pip
-python3 -m pip install https://github.com/ViktorThink/validator-endpoint/raw/main/dist/btvep-0.1.0-py3-none-any.whl
+python3 -m pip install https://github.com/fabhed/validator-endpoint/raw/main/dist/btvep-0.1.0-py3-none-any.whl
 # Set your hotkey mnemonic (quotes are needed since the mnemonic has spaces in it)
 btvep config set hotkey_mnemonic "my_validators_secret_mnemonic_phrase_here"
 # Create an API key
@@ -50,7 +50,7 @@ curl http://localhost:8000/chat \
   -H "Authorization: Bearer $API_KEY" \
   -H "Endpoint-Version: 2023-05-19" \
   -d '{
-     "messages": [{"role": "user", "content": "Say this is a test!"}]
+     "messages": [{"role": "user", "content": "What is 1+1?"}]
    }'
 ```
 
@@ -73,7 +73,7 @@ curl http://localhost:8000/chat \
   -H "Authorization: Bearer $API_KEY" \
   -H "Endpoint-Version: 2023-05-19" \
   -d '{
-     "messages": [{"role": "user", "content": "Say this is a test!"}]
+     "messages": [{"role": "user", "content": "What is 1+1?"}]
    }'
 ```
 
@@ -94,7 +94,7 @@ Response:
 }
 ```
 
-### Prompt a specific neuron via its uid on the network
+### Prompt a specific neurons via uids on the network
 
 ```bash
 curl http://localhost:8000/chat \
@@ -102,8 +102,8 @@ curl http://localhost:8000/chat \
   -H "Authorization: Bearer $API_KEY" \
   -H "Endpoint-Version: 2023-05-19" \
   -d '{
-     "uid": 123,
-     "messages": [{"role": "user", "content": "Say this is a test!"}]
+     "uids": [0, 1],
+     "messages": [{"role": "user", "content": "What is 1+1?"}]
    }'
 ```
 
@@ -123,6 +123,21 @@ Response:
   ]
 }
 ```
+
+### Prompt top neurons sorted by incentive on the network
+
+```bash
+curl http://localhost:8000/chat \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $API_KEY" \
+  -H "Endpoint-Version: 2023-05-19" \
+  -d '{
+     "top_n": 5,
+     "messages": [{"role": "user", "content": "What is 1+1?"}]
+   }'
+```
+
+This will send the prompt to the top 5 miners, change `top_n` to 1 to only query the top miner.
 
 ## Dev requirements
 
@@ -132,7 +147,7 @@ Response:
 
 ```bash
 # Clone the repo
-git clone https://github.com/ViktorThink/validator-endpoint.git
+git clone https://github.com/fabhed/validator-endpoint.git
 cd validator-endpoint
 
 # Install depedencies

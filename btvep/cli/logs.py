@@ -73,4 +73,5 @@ def main(
             Request.responder_hotkey == responder_hotkey
         )
 
-    print(Request.tabulate([log for log in log_entries_query.dicts().iterator()]))
+    log_entries = [log for log in log_entries_query.dicts().iterator()]
+    print(Request.tabulate(log_entries))

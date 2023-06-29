@@ -128,34 +128,35 @@ def edit(
     Edit an API key.
     """
 
-    if valid_until is None:
-        parsed_valid_until = None
-    elif valid_until.lower() == "false" or valid_until.lower() == "-1":
-        valid_until = -1
-    else:
-        # https://dateparser.readthedocs.io/en/latest/
-        parsed_valid_until = dateparser.parse(
-            valid_until,
-            settings={
-                "PREFER_DATES_FROM": "future",
-                "DATE_ORDER": "YMD",
-                "PREFER_DAY_OF_MONTH": "first",
-                # Option is not yet released, but saw it in a github issue https://github.com/scrapinghub/dateparser/pull/1146
-                # "PREFER_MONTH_OF_YEAR": "first",
-                # Relative base for current date but 0 hours, 0 minutes, 0 seconds
-                "RELATIVE_BASE": datetime.now().replace(
-                    hour=0, minute=0, second=0, microsecond=0
-                ),
-            },
-        )
-        if parsed_valid_until is None:
-            raise typer.BadParameter(
-                f"Could not parse date '{valid_until}'. Try another format."
+    parsed_valid_until = None
+    if valid_until is not None:
+        if valid_until.lower() == "false" or valid_until.lower() == "-1":
+            parsed_valid_until = -1
+        else:
+            # https://dateparser.readthedocs.io/en/latest/
+            parsed_valid_until = dateparser.parse(
+                valid_until,
+                settings={
+                    "PREFER_DATES_FROM": "future",
+                    "DATE_ORDER": "YMD",
+                    "PREFER_DAY_OF_MONTH": "first",
+                    # Option is not yet released, but saw it in a github issue https://github.com/scrapinghub/dateparser/pull/1146
+                    # "PREFER_MONTH_OF_YEAR": "first",
+                    # Relative base for current date but 0 hours, 0 minutes, 0 seconds
+                    "RELATIVE_BASE": datetime.now().replace(
+                        hour=0, minute=0, second=0, microsecond=0
+                    ),
+                },
             )
-        # Rich formatt the date
-        rich.print(
-            f"""Parsed date as [bold]{parsed_valid_until.date()} {parsed_valid_until.time()}[/bold]"""
-        )
+            if parsed_valid_until is None:
+                raise typer.BadParameter(
+                    f"Could not parse date '{valid_until}'. Try another format."
+                )
+            # Rich formatt the date
+            rich.print(
+                f"""Parsed date as [bold]{parsed_valid_until.date()} {parsed_valid_until.time()}[/bold]"""
+            )
+            parsed_valid_until = int(parsed_valid_until.timestamp())
 
     api_keys.update(
         query,

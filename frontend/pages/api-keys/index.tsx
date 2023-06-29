@@ -404,7 +404,7 @@ export default function ViewApiKeys() {
           <APIKeyOperations
             prompt="What is 1+1?"
             apiKey={record.api_key}
-            url="http://localhost:8000" // TODO: Make this dynamic
+            url={process.env.NEXT_PUBLIC_API_BASE_URL}
             onDelete={() => handleDelete(record)}
           />
         );

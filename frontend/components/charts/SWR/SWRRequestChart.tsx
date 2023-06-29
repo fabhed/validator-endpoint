@@ -7,6 +7,8 @@ import { aggregateGroupData } from "../../../utils/charts";
 import fetcher from "../../../utils/fetcher";
 import RequestChart, { RequestChartDataPoint } from "../RequestChart";
 import { DurationSelectors } from "../helpers/DurationSelector";
+import React from "react";
+import { RequestLogEntry } from "../../../utils/api-types";
 const { Title } = Typography;
 
 export default function SWRRequestChart() {

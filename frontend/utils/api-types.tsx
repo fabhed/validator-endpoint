@@ -60,14 +60,14 @@ interface HTTPValidationError {
 }
 
 // Log Entry
-interface RequestLogEntry {
+export interface RequestLogEntry {
   api_key: string;
   timestamp: number;
   responder_hotkey: string;
 }
 
 // Rate Limit Entry
-interface RateLimitEntry {
+export interface RateLimitEntry {
   times: number;
   seconds: number;
 }

@@ -1,4 +1,5 @@
 import { Space, Form, InputNumber, Button, Typography, Switch } from "antd";
+import React from "react";
 import { useState } from "react";
 
 const { Title } = Typography;

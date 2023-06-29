@@ -4,6 +4,8 @@ import { RateLimit, RateLimitForm } from "./RateLimitForm";
 import { ApiKeyDataType } from "../pages/api-keys";
 import axios from "axios";
 import { mutate } from "swr";
+import { RateLimitEntry } from "../utils/api-types";
+import React from "react";
 
 const { Paragraph, Title } = Typography;
 

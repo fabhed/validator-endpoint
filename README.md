@@ -19,11 +19,13 @@ Allow validators to easily host an API for other services to prompt the Bittenso
 - Request logs
 - Rate limits - Configure default limits or custom per API key
 - Drop-in replacement for [OpenAI's Chat API](https://platform.openai.com/docs/api-reference/chat)
+- Filter requests via [OpenAI's Moderation Endpoint](https://platform.openai.com/docs/guides/moderation/overview)
+- A Web Dashboard for statistics and key management (CLI Alternative)
+- Query miners by UID or query top miners on the network.
 
 ## Planned features
 
-- Filter requests via [OpenAI's Moderation Endpoint](https://platform.openai.com/docs/guides/moderation/overview)
-- A Web Dashboard for statistics and key management (CLI Alternative)
+If you have suggestions, please leave a PR.
 
 ## Getting started
 

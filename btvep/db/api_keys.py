@@ -4,7 +4,6 @@ import secrets
 import time
 
 from peewee import BooleanField, DateTimeField, DoesNotExist, IntegerField, TextField
-from pyparsing import Optional
 from tabulate import tabulate
 from btvep.btvep_models import RateLimitEntry
 

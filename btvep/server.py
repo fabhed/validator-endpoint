@@ -163,7 +163,6 @@ async def chat(
             is_success=dendrite_res.is_success,
             return_message=dendrite_res.return_message,
             elapsed_time=dendrite_res.elapsed,
-            src_hotkey=dendrite_res.src_hotkey,
             src_version=dendrite_res.src_version,
             dest_version=dendrite_res.dest_version,
             return_code=return_code_str,

@@ -26,7 +26,6 @@ class LogEntry(BaseModel):
     is_success: Optional[bool]
     return_message: Optional[str]
     elapsed_time: Optional[float]
-    src_hotkey: Optional[str]
     src_version: Optional[int]
     dest_version: Optional[int]
     return_code: Optional[str]

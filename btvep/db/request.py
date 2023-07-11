@@ -28,7 +28,6 @@ class Request(Model):
     is_success = BooleanField(null=True)
     return_message = TextField(null=True)
     elapsed_time = FloatField(null=True)
-    src_hotkey = TextField(null=True)
     src_version = IntegerField(null=True)
     dest_version = IntegerField(null=True)
     return_code = TextField(null=True)

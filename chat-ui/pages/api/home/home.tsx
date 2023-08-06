@@ -205,8 +205,6 @@ const Home = ({
       });
     }
 
-    const apiKey = localStorage.getItem('apiKey');
-
     if (window.innerWidth < 640) {
       dispatch({ field: 'showChatbar', value: false });
       dispatch({ field: 'showPromptbar', value: false });
@@ -256,7 +254,6 @@ const Home = ({
         value: cleanedSelectedConversation,
       });
     } else {
-      const lastConversation = conversations[conversations.length - 1];
       dispatch({
         field: 'selectedConversation',
         value: {
@@ -269,7 +266,6 @@ const Home = ({
       });
     }
   }, [
-    conversations,
     defaultModelId,
     dispatch,
     serverSideApiKeyIsSet,

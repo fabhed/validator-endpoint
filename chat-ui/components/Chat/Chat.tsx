@@ -317,14 +317,14 @@ export const Chat = memo(({ stopConversationRef }: Props) => {
       >
         {selectedConversation?.messages.length === 0 ? (
           <>
-            <div className="mx-auto flex flex-col space-y-5 md:space-y-10 px-3 pt-5 md:pt-12 sm:max-w-[600px]">
+            <div className="mx-auto flex flex-col space-y-5 px-3 pt-5 md:pt-12 sm:max-w-[600px]">
               <div className="text-center text-3xl font-semibold text-gray-800 dark:text-gray-100">
                 {title}
               </div>
               <div className="text-center text-lg text-black dark:text-white">
                 <div className="mb-8">
-                  {title} allows you to leverage the power of the Bittensor
-                  network in an accessible UI.
+                  Leverage the decentralized power of Bittensor through an
+                  accessible chat interface.
                 </div>
                 {!isAuthenticated && (
                   <>

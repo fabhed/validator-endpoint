@@ -1,3 +1,5 @@
+export const title = 'Bittensor Chat';
+
 export const DEFAULT_SYSTEM_PROMPT =
   process.env.NEXT_PUBLIC_DEFAULT_SYSTEM_PROMPT ||
   "You are an AI assistant. Follow the user's instructions carefully. Respond using markdown.";
@@ -19,3 +21,6 @@ export const OPENAI_API_VERSION =
 export const OPENAI_ORGANIZATION = process.env.OPENAI_ORGANIZATION || '';
 
 export const AZURE_DEPLOYMENT_ID = process.env.AZURE_DEPLOYMENT_ID || '';
+
+export const AUTH0_DOMAIN = process.env.NEXT_PUBLIC_AUTH0_DOMAIN || '';
+export const AUTH0_CLIENT_ID = process.env.NEXT_PUBLIC_AUTH0_CLIENT_ID || '';

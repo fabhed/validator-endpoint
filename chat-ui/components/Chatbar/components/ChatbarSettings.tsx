@@ -1,3 +1,4 @@
+import { useAuth0 } from '@auth0/auth0-react';
 import { IconFileExport, IconSettings } from '@tabler/icons-react';
 import { useContext, useState } from 'react';
 
@@ -13,17 +14,13 @@ import ChatbarContext from '../Chatbar.context';
 import { ClearConversations } from './ClearConversations';
 
 export const ChatbarSettings = () => {
+  const { user, isAuthenticated, isLoading } = useAuth0();
+
   const { t } = useTranslation('sidebar');
   const [isSettingDialogOpen, setIsSettingDialog] = useState<boolean>(false);
 
   const {
-    state: {
-      apiKey,
-      lightMode,
-      serverSideApiKeyIsSet,
-      serverSidePluginKeysSet,
-      conversations,
-    },
+    state: { conversations },
     dispatch: homeDispatch,
   } = useContext(HomeContext);
 
@@ -31,7 +28,6 @@ export const ChatbarSettings = () => {
     handleClearConversations,
     handleImportConversations,
     handleExportData,
-    handleApiKeyChange,
   } = useContext(ChatbarContext);
 
   return (
@@ -51,6 +47,14 @@ export const ChatbarSettings = () => {
       <SidebarButton
         text={t('Settings')}
         icon={<IconSettings size={18} />}
+        onClick={() => setIsSettingDialog(true)}
+      />
+
+      <SidebarButton
+        text={user?.name || ''}
+        icon={
+          <img src={user?.picture} alt={user?.name} style={{ width: '30px' }} />
+        }
         onClick={() => setIsSettingDialog(true)}
       />
 

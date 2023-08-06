@@ -9,7 +9,6 @@ export interface ChatBody {
   messages: Message[];
   key: string;
   prompt: string;
-  temperature: number;
 }
 
 export interface Conversation {
@@ -17,6 +16,5 @@ export interface Conversation {
   name: string;
   messages: Message[];
   prompt: string;
-  temperature: number;
   folderId: string | null;
 }

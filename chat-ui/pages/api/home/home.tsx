@@ -8,14 +8,15 @@ import Head from 'next/head';
 
 import { useCreateReducer } from '@/hooks/useCreateReducer';
 
-import useErrorService from '@/services/errorService';
-import useApiService from '@/services/useApiService';
-
 import {
   cleanConversationHistory,
   cleanSelectedConversation,
 } from '@/utils/app/clean';
-import { DEFAULT_SYSTEM_PROMPT, DEFAULT_TEMPERATURE } from '@/utils/app/const';
+import {
+  DEFAULT_SYSTEM_PROMPT,
+  DEFAULT_TEMPERATURE,
+  title,
+} from '@/utils/app/const';
 import {
   saveConversation,
   saveConversations,
@@ -53,8 +54,6 @@ const Home = ({
   defaultModelId,
 }: Props) => {
   const { t } = useTranslation('chat');
-  const { getModels } = useApiService();
-  const { getModelsError } = useErrorService();
   const [initialRender, setInitialRender] = useState<boolean>(true);
 
   const contextValue = useCreateReducer<HomeInitialState>({
@@ -62,42 +61,11 @@ const Home = ({
   });
 
   const {
-    state: {
-      apiKey,
-      lightMode,
-      folders,
-      conversations,
-      selectedConversation,
-      prompts,
-      temperature,
-    },
+    state: { lightMode, folders, conversations, selectedConversation, prompts },
     dispatch,
   } = contextValue;
 
   const stopConversationRef = useRef<boolean>(false);
-
-  const { data, error, refetch } = useQuery(
-    ['GetModels', apiKey, serverSideApiKeyIsSet],
-    ({ signal }) => {
-      if (!apiKey && !serverSideApiKeyIsSet) return null;
-
-      return getModels(
-        {
-          key: apiKey,
-        },
-        signal,
-      );
-    },
-    { enabled: true, refetchOnMount: false },
-  );
-
-  useEffect(() => {
-    if (data) dispatch({ field: 'models', value: data });
-  }, [data, dispatch]);
-
-  useEffect(() => {
-    dispatch({ field: 'modelError', value: getModelsError(error) });
-  }, [dispatch, error, getModelsError]);
 
   // FETCH MODELS ----------------------------------------------
 
@@ -185,14 +153,7 @@ const Home = ({
       id: uuidv4(),
       name: t('New Conversation'),
       messages: [],
-      model: lastConversation?.model || {
-        id: OpenAIModels[defaultModelId].id,
-        name: OpenAIModels[defaultModelId].name,
-        maxLength: OpenAIModels[defaultModelId].maxLength,
-        tokenLimit: OpenAIModels[defaultModelId].tokenLimit,
-      },
       prompt: DEFAULT_SYSTEM_PROMPT,
-      temperature: lastConversation?.temperature ?? DEFAULT_TEMPERATURE,
       folderId: null,
     };
 
@@ -231,22 +192,7 @@ const Home = ({
     if (window.innerWidth < 640) {
       dispatch({ field: 'showChatbar', value: false });
     }
-  }, [selectedConversation]);
-
-  useEffect(() => {
-    defaultModelId &&
-      dispatch({ field: 'defaultModelId', value: defaultModelId });
-    serverSideApiKeyIsSet &&
-      dispatch({
-        field: 'serverSideApiKeyIsSet',
-        value: serverSideApiKeyIsSet,
-      });
-    serverSidePluginKeysSet &&
-      dispatch({
-        field: 'serverSidePluginKeysSet',
-        value: serverSidePluginKeysSet,
-      });
-  }, [defaultModelId, serverSideApiKeyIsSet, serverSidePluginKeysSet]);
+  }, [dispatch, selectedConversation]);
 
   // ON LOAD --------------------------------------------
 
@@ -260,22 +206,6 @@ const Home = ({
     }
 
     const apiKey = localStorage.getItem('apiKey');
-
-    if (serverSideApiKeyIsSet) {
-      dispatch({ field: 'apiKey', value: '' });
-
-      localStorage.removeItem('apiKey');
-    } else if (apiKey) {
-      dispatch({ field: 'apiKey', value: apiKey });
-    }
-
-    const pluginKeys = localStorage.getItem('pluginKeys');
-    if (serverSidePluginKeysSet) {
-      dispatch({ field: 'pluginKeys', value: [] });
-      localStorage.removeItem('pluginKeys');
-    } else if (pluginKeys) {
-      dispatch({ field: 'pluginKeys', value: pluginKeys });
-    }
 
     if (window.innerWidth < 640) {
       dispatch({ field: 'showChatbar', value: false });
@@ -333,18 +263,18 @@ const Home = ({
           id: uuidv4(),
           name: t('New Conversation'),
           messages: [],
-          model: OpenAIModels[defaultModelId],
           prompt: DEFAULT_SYSTEM_PROMPT,
-          temperature: lastConversation?.temperature ?? DEFAULT_TEMPERATURE,
           folderId: null,
         },
       });
     }
   }, [
+    conversations,
     defaultModelId,
     dispatch,
     serverSideApiKeyIsSet,
     serverSidePluginKeysSet,
+    t,
   ]);
 
   return (
@@ -360,7 +290,7 @@ const Home = ({
       }}
     >
       <Head>
-        <title>Chatbot UI</title>
+        <title>{title}</title>
         <meta name="description" content="ChatGPT but better." />
         <meta
           name="viewport"

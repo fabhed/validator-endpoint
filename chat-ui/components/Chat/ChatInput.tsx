@@ -35,6 +35,7 @@ interface Props {
   stopConversationRef: MutableRefObject<boolean>;
   textareaRef: MutableRefObject<HTMLTextAreaElement | null>;
   showScrollDownButton: boolean;
+  disabled: boolean;
 }
 
 export const ChatInput = ({
@@ -44,6 +45,7 @@ export const ChatInput = ({
   stopConversationRef,
   textareaRef,
   showScrollDownButton,
+  disabled,
 }: Props) => {
   const { t } = useTranslation('chat');
 
@@ -283,7 +285,9 @@ export const ChatInput = ({
               }`,
             }}
             placeholder={
-              t('Type a message or type "/" to select a prompt...') || ''
+              disabled
+                ? 'Please log in before sending a message'
+                : t('Type a message or type "/" to select a prompt...') || ''
             }
             value={content}
             rows={1}
@@ -291,6 +295,7 @@ export const ChatInput = ({
             onCompositionEnd={() => setIsTyping(false)}
             onChange={handleChange}
             onKeyDown={handleKeyDown}
+            disabled={disabled}
           />
 
           <button

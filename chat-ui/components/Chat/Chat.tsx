@@ -329,8 +329,8 @@ export const Chat = memo(({ stopConversationRef }: Props) => {
                 {!isAuthenticated && (
                   <>
                     <p>
-                      Please log in to access the Bittensor network and start
-                      chatting with the AI.
+                      Log in to access the Bittensor network and start chatting
+                      with the AI.
                     </p>
                     <LoginButton />
                   </>
@@ -380,6 +380,7 @@ export const Chat = memo(({ stopConversationRef }: Props) => {
           }
         }}
         showScrollDownButton={showScrollDownButton}
+        disabled={!isAuthenticated}
       />
     </div>
   );

@@ -28,7 +28,7 @@ const Promptbar = () => {
   });
 
   const {
-    state: { prompts, defaultModelId, showPromptbar },
+    state: { prompts, showPromptbar },
     dispatch: homeDispatch,
     handleCreateFolder,
   } = useContext(HomeContext);
@@ -44,22 +44,19 @@ const Promptbar = () => {
   };
 
   const handleCreatePrompt = () => {
-    if (defaultModelId) {
-      const newPrompt: Prompt = {
-        id: uuidv4(),
-        name: `Prompt ${prompts.length + 1}`,
-        description: '',
-        content: '',
-        model: OpenAIModels[defaultModelId],
-        folderId: null,
-      };
+    const newPrompt: Prompt = {
+      id: uuidv4(),
+      name: `Prompt ${prompts.length + 1}`,
+      description: '',
+      content: '',
+      folderId: null,
+    };
 
-      const updatedPrompts = [...prompts, newPrompt];
+    const updatedPrompts = [...prompts, newPrompt];
 
-      homeDispatch({ field: 'prompts', value: updatedPrompts });
+    homeDispatch({ field: 'prompts', value: updatedPrompts });
 
-      savePrompts(updatedPrompts);
-    }
+    savePrompts(updatedPrompts);
   };
 
   const handleDeletePrompt = (prompt: Prompt) => {

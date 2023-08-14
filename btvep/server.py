@@ -206,13 +206,6 @@ async def conversation(
             )
             failed_index += 1
 
-    if all_failed:
-        raise ChatResponseException(
-            status_code=502,  # Bad Gateway (we are the gateway to the network)
-            detail="All miner responses have failed.",
-            failed_responses=failed_responses,
-        )
-
     # Increment user request counts
     User.update(
         {
@@ -220,6 +213,13 @@ async def conversation(
             "request_count": user.request_count + len(prompter_responses),
         }
     ).where(User.id == user.id).execute()
+
+    if all_failed:
+        raise ChatResponseException(
+            status_code=502,  # Bad Gateway (we are the gateway to the network)
+            detail="All miner responses have failed.",
+            failed_responses=failed_responses,
+        )
 
     response_dict = {"choices": choices, "failed_responses": failed_responses}
 
@@ -326,17 +326,10 @@ async def chat(
             )
             failed_index += 1
 
-    if all_failed:
-        raise ChatResponseException(
-            status_code=502,  # Bad Gateway (we are the gateway to the network)
-            detail="All miner responses have failed.",
-            failed_responses=failed_responses,
-        )
-
     # Subtract cost if not unlimited - Only pay for successful responses
     credits = (
         None
-        if api_key.has_unlimited_credits()
+        if api_key.has_unlimited_credits() or all_failed
         else api_key.credits - COST * len(choices)
     )
 
@@ -351,6 +344,13 @@ async def chat(
         ),  # increment by the number of requests sent to the network
         credits=credits,
     )
+
+    if all_failed:
+        raise ChatResponseException(
+            status_code=502,  # Bad Gateway (we are the gateway to the network)
+            detail="All miner responses have failed.",
+            failed_responses=failed_responses,
+        )
 
     response_dict = {"choices": choices, "failed_responses": failed_responses}
 

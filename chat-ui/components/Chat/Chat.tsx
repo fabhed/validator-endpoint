@@ -110,36 +110,41 @@ export const Chat = memo(() => {
           if (!response.ok) {
             homeDispatch({ field: 'loading', value: false });
             homeDispatch({ field: 'messageIsStreaming', value: false });
-            toast.error(response.statusText);
-            return;
-          }
-          const json = await response.json();
-          console.log('Response', json);
-          homeDispatch({ field: 'loading', value: false });
-          if (!plugin) {
-            if (updatedConversation.messages.length === 1) {
-              const { content } = message;
-              const customName =
-                content.length > 30
-                  ? content.substring(0, 30) + '...'
-                  : content;
-              updatedConversation = {
-                ...updatedConversation,
-                name: customName,
-              };
-            }
-            const updatedMessages: Message[] = [
-              ...updatedConversation.messages,
-              json.choices[0].message,
-            ];
-            updatedConversation = {
-              ...updatedConversation,
-              messages: updatedMessages,
-            };
             homeDispatch({
               field: 'selectedConversation',
               value: updatedConversation,
             });
+            toast.error(response.statusText);
+          } else {
+            // Response OK!
+            const json = await response.json();
+            console.log('Response', json);
+            homeDispatch({ field: 'loading', value: false });
+            if (!plugin) {
+              if (updatedConversation.messages.length === 1) {
+                const { content } = message;
+                const customName =
+                  content.length > 30
+                    ? content.substring(0, 30) + '...'
+                    : content;
+                updatedConversation = {
+                  ...updatedConversation,
+                  name: customName,
+                };
+              }
+              const updatedMessages: Message[] = [
+                ...updatedConversation.messages,
+                json.choices[0].message,
+              ];
+              updatedConversation = {
+                ...updatedConversation,
+                messages: updatedMessages,
+              };
+              homeDispatch({
+                field: 'selectedConversation',
+                value: updatedConversation,
+              });
+            }
           }
         } catch (err) {
           if (err instanceof DOMException && err.name === 'AbortError') {

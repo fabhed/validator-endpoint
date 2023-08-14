@@ -54,7 +54,6 @@ export const Chat = memo(() => {
   const abortControllerRef = useRef<AbortController | null>(null);
 
   const handleStopConversation = () => {
-    console.log('handleStopConversation', abortControllerRef.current);
     abortControllerRef.current?.abort();
   };
 

@@ -65,8 +65,6 @@ const Home = ({
     dispatch,
   } = contextValue;
 
-  const stopConversationRef = useRef<boolean>(false);
-
   // FETCH MODELS ----------------------------------------------
 
   const handleSelectConversation = (conversation: Conversation) => {
@@ -309,7 +307,7 @@ const Home = ({
             <Chatbar />
 
             <div className="flex flex-1">
-              <Chat stopConversationRef={stopConversationRef} />
+              <Chat />
             </div>
 
             <Promptbar />

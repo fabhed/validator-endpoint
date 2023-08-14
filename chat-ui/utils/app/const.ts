@@ -2,7 +2,7 @@ export const title = 'Bittensor Chat';
 
 export const DEFAULT_SYSTEM_PROMPT =
   process.env.NEXT_PUBLIC_DEFAULT_SYSTEM_PROMPT ||
-  "You are an AI assistant. Follow the user's instructions carefully. Respond using markdown.";
+  "You are an AI assistant. Follow the user's instructions carefully.";
 
 export const VALIDATOR_ENDPOINT_BASE_URL =
   process.env.VALIDATOR_ENDPOINT_BASE_URL || 'https://validator-api.fabhed.dev';

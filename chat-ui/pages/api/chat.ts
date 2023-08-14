@@ -27,32 +27,32 @@ const handler = async (req: Request): Promise<Response> => {
       messagesToSend = [message, ...messagesToSend];
     }
 
-    const res = await fetch(VALIDATOR_ENDPOINT_BASE_URL + '/chat', {
+    const url = VALIDATOR_ENDPOINT_BASE_URL + '/conversation';
+    const body = {
+      messages: [
+        {
+          role: 'system',
+          content: prompt || DEFAULT_SYSTEM_PROMPT,
+        },
+        ...messages,
+      ],
+      top_n: 1,
+    };
+    const res = await fetch(url, {
       headers: {
         'Content-Type': 'application/json',
         Authorization: `Bearer ${key}`,
       },
       method: 'POST',
-      body: JSON.stringify({
-        messages: [
-          {
-            role: 'system',
-            content: prompt || DEFAULT_SYSTEM_PROMPT,
-          },
-          ...messages,
-        ],
-        top_n: 1,
-      }),
+      body: JSON.stringify(body),
     });
 
-    const json = await res.json();
-    console.log(json);
-
     if (res.status !== 200) {
+      const json = await res.json();
       throw new ValidatorEndpointError(json?.detail || 'Unknown error');
     }
-
-    return new Response(json);
+    const text = await res.text();
+    return new Response(text);
   } catch (error) {
     console.error(error);
     if (error instanceof ValidatorEndpointError) {

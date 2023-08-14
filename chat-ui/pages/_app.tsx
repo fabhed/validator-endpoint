@@ -29,6 +29,8 @@ function App({ Component, pageProps }: AppProps<{}>) {
         clientId={AUTH0_CLIENT_ID}
         authorizationParams={{
           redirect_uri: 'http://localhost:3000',
+          audience: process.env.NEXT_PUBLIC_AUTH0_AUDIENCE,
+          scope: '',
         }}
       >
         <QueryClientProvider client={queryClient}>

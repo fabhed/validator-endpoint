@@ -1,5 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
-import { useQuery } from 'react-query';
+import { useEffect, useState } from 'react';
 
 import { GetServerSideProps } from 'next';
 import { useTranslation } from 'next-i18next';
@@ -12,11 +11,7 @@ import {
   cleanConversationHistory,
   cleanSelectedConversation,
 } from '@/utils/app/clean';
-import {
-  DEFAULT_SYSTEM_PROMPT,
-  DEFAULT_TEMPERATURE,
-  title,
-} from '@/utils/app/const';
+import { DEFAULT_SYSTEM_PROMPT, title } from '@/utils/app/const';
 import {
   saveConversation,
   saveConversations,
@@ -29,7 +24,7 @@ import { getSettings } from '@/utils/app/settings';
 import { Conversation } from '@/types/chat';
 import { KeyValuePair } from '@/types/data';
 import { FolderInterface, FolderType } from '@/types/folder';
-import { OpenAIModelID, OpenAIModels, fallbackModelID } from '@/types/openai';
+import { OpenAIModelID, fallbackModelID } from '@/types/openai';
 import { Prompt } from '@/types/prompt';
 
 import { Chat } from '@/components/Chat/Chat';

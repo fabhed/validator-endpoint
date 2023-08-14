@@ -4,7 +4,7 @@ import { useTranslation } from 'next-i18next';
 
 import { useCreateReducer } from '@/hooks/useCreateReducer';
 
-import { DEFAULT_SYSTEM_PROMPT, DEFAULT_TEMPERATURE } from '@/utils/app/const';
+import { DEFAULT_SYSTEM_PROMPT } from '@/utils/app/const';
 import { saveConversation, saveConversations } from '@/utils/app/conversation';
 import { saveFolders } from '@/utils/app/folders';
 import { exportData, importData } from '@/utils/app/importExport';
@@ -69,7 +69,6 @@ export const Chatbar = () => {
         name: t('New Conversation'),
         messages: [],
         prompt: DEFAULT_SYSTEM_PROMPT,
-        temperature: DEFAULT_TEMPERATURE,
         folderId: null,
       },
     });
@@ -109,7 +108,6 @@ export const Chatbar = () => {
           name: t('New Conversation'),
           messages: [],
           prompt: DEFAULT_SYSTEM_PROMPT,
-          temperature: DEFAULT_TEMPERATURE,
           folderId: null,
         },
       });

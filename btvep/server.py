@@ -101,12 +101,6 @@ async def startup():
 
 import json
 
-import jwt
-
-
-# def AuthenticateUser():
-#     jwt.decode(encoded_jwt, "secret", algorithms=["HS256"])
-
 
 @app.post(
     "/conversation",

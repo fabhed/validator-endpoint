@@ -28,6 +28,9 @@ class Config(BaseModel):
     global_rate_limits: List[RateLimitEntry] = []
     openai_filter_enabled = False
     openai_api_key: str | None = None
+    auth0_domain: str | None = None
+    auth0_api_audience: str | None = None
+    auth0_issuer: str | None = None
 
     source_info = {}
 

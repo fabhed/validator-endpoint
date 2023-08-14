@@ -5,12 +5,13 @@ from datetime import datetime
 from math import ceil
 from typing import Annotated
 import uuid
+import jwt
 
 import openai
 import redis.asyncio
 import rich
 from fastapi import Depends, HTTPException, status
-from fastapi.security import OAuth2PasswordBearer
+from fastapi.security import HTTPBearer, OAuth2PasswordBearer
 from fastapi_limiter import FastAPILimiter
 from fastapi_limiter.depends import RateLimiter
 
@@ -19,11 +20,13 @@ from btvep.constants import COST
 from btvep.db.api_keys import ApiKey
 from btvep.db.api_keys import get_by_key as get_api_key_by_key
 from btvep.db.request import Request as DBRequest
+from btvep.db.user import User
 from btvep.db.utils import db, db_state_default
 
 config = Config().load()
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
+token_auth_scheme = HTTPBearer()
 
 
 from starlette.requests import Request
@@ -70,9 +73,67 @@ if config.openai_filter_enabled:
     filter = OpenAIFilter(config.openai_api_key)
 
 
+async def authenticate_user(token: str = Depends(oauth2_scheme)):
+    config = Config().load()
+
+    # This gets the JWKS from a given URL and does processing so you can
+    # use any of the keys available
+    jwks_url = f"https://{config.auth0_domain}/.well-known/jwks.json"
+    jwks_client = jwt.PyJWKClient(jwks_url)
+
+    signing_key = None
+    try:
+        signing_key = jwks_client.get_signing_key_from_jwt(token).key
+    except jwt.exceptions.PyJWKClientError as error:
+        print("jwks error", error)
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail=error.__str__(),
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    except jwt.exceptions.DecodeError as error:
+        print("jwt decode error", error)
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail=error.__str__(),
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
+    try:
+        payload = jwt.decode(
+            token,
+            signing_key,
+            algorithms="RS256",
+            audience=config.auth0_api_audience,
+            issuer=config.auth0_issuer,
+        )
+    except Exception as e:
+        print("token decode error", e)
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail=str(e),
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    try:
+        user, created = User.get_or_create(id=payload["sub"])
+        if created:
+            print("created user", user)
+        return user
+    except Exception as e:
+        print("user creation error", e)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=str(e),
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
+
 async def authenticate_api_key(
-    request: Request, input_api_key: str = Depends(oauth2_scheme)
+    request: Request, token: str = Depends(token_auth_scheme)
 ) -> ApiKey:
+    input_api_key = token.credentials
+    print("authenticating api key", input_api_key)
+
     def raiseKeyError(detail: str):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -190,7 +251,7 @@ def get_rate_limits(api_key: str = None) -> list[RateLimiter]:
 global_rate_limits = get_rate_limits()
 
 
-def VerifyAndLimit(api_key: ApiKey):
+def VerifyAPIKeyAndLimit():
     async def a(
         request: Request,
         response: Response,

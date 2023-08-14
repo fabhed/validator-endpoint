@@ -10,7 +10,8 @@ from .utils import db
 
 class Request(Model):
     id = AutoField()
-    api_key = ForeignKeyField(ApiKey, field="api_key", backref="requests")
+    api_key = ForeignKeyField(ApiKey, field="api_key", backref="requests", null=True)
+    user = ForeignKeyField(ApiKey, field="id", backref="requests", null=True)
     timestamp = IntegerField(default=lambda: int(time.time()))
     prompt = TextField()
 

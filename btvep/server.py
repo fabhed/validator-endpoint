@@ -15,6 +15,7 @@ from fastapi.responses import JSONResponse
 
 from btvep.db.api_keys import ApiKey
 from btvep.db.api_keys import update as update_api_key
+from btvep.db.user import User
 
 logging.basicConfig(format="%(levelname)s: %(message)s", level=logging.INFO)
 
@@ -34,8 +35,9 @@ from btvep.db.tables import create_all as create_all_tables
 from btvep.db.utils import DB_PATH
 from btvep.fastapi_dependencies import (
     InitializeRateLimiting,
-    VerifyAndLimit,
+    VerifyAPIKeyAndLimit,
     authenticate_api_key,
+    authenticate_user,
     get_db,
 )
 from btvep.metagraph import MetagraphSyncer
@@ -99,12 +101,139 @@ async def startup():
 
 import json
 
+import jwt
+
+
+# def AuthenticateUser():
+#     jwt.decode(encoded_jwt, "secret", algorithms=["HS256"])
+
+
+@app.post(
+    "/conversation",
+    dependencies=[
+        Depends(get_db),
+        Depends(authenticate_user),
+    ],
+)
+async def conversation(
+    authorization: Annotated[str | None, Header()] = None,
+    uids: Annotated[List[int] | None, Body()] = DEFAULT_UIDS,
+    top_n: Annotated[
+        int | None,
+        Body(
+            description="Query top miners based on incentive in the network. If set to for example 5, the top 5 miners will be sent the request. This parameter takes precidence over the uids parameter."
+        ),
+    ] = None,
+    messages: Annotated[List[Message] | None, Body()] = None,
+    user: ApiKey = Depends(authenticate_user),
+) -> ChatResponse:
+    """Endpoint for chat requests made directly from a logged-in user from chat-ui."""
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
+    api_request_id = str(uuid.uuid4())
+    prompter_responses = None
+    try:
+        prompter_responses = await validator_prompter.query_network(
+            messages=messages, uids=uids, top_n=top_n
+        )
+    except MetagraphNotSyncedException as e:
+        raise HTTPException(
+            detail="Metagraph is not synced yet. Please try again later.",
+            status_code=500,
+        ) from e
+
+    choices: List[ChatResponseChoice] = []
+    failed_responses: List[FailedMinerResponse] = []
+    all_failed = True
+
+    success_index = 0
+    failed_index = 0
+    for p_response in prompter_responses:
+        dendrite_res = p_response["dendrite_response"]
+        uid = p_response["uid"]
+        return_code = None
+        if isinstance(type(dendrite_res.return_code), type(Enum)):
+            return_code = (
+                dendrite_res.return_code.value
+            )  # if return_code is an enum member
+        else:
+            return_code = (
+                dendrite_res.return_code
+            )  # if return_code is not an enum member
+        return_code_str = code_to_string(return_code)
+
+        Request.create(
+            is_api_success=True,
+            api_request_id=api_request_id,
+            prompt=json.dumps([message.dict() for message in messages]),
+            user_id=authorization.split(" ")[1],
+            response=dendrite_res.completion,
+            responder_hotkey=dendrite_res.dest_hotkey,
+            is_success=dendrite_res.is_success,
+            return_message=dendrite_res.return_message,
+            elapsed_time=dendrite_res.elapsed,
+            src_version=dendrite_res.src_version,
+            dest_version=dendrite_res.dest_version,
+            return_code=return_code_str,
+        )
+
+        response_ms = int(dendrite_res.elapsed * 1000)
+
+        if dendrite_res.is_success:
+            choices.append(
+                {
+                    "index": success_index,
+                    "message": {
+                        "role": "assistant",
+                        "content": dendrite_res.completion,
+                    },
+                    "uid": uid,
+                    "responder_hotkey": dendrite_res.dest_hotkey,
+                    "response_ms": response_ms,
+                }
+            )
+            success_index += 1
+            all_failed = False
+        else:
+            failed_responses.append(
+                {
+                    "index": failed_index,
+                    "error": dendrite_res.return_message,
+                    "uid": uid,
+                    "responder_hotkey": dendrite_res.dest_hotkey,
+                    "response_ms": response_ms,
+                }
+            )
+            failed_index += 1
+
+    if all_failed:
+        raise ChatResponseException(
+            status_code=502,  # Bad Gateway (we are the gateway to the network)
+            detail="All miner responses have failed.",
+            failed_responses=failed_responses,
+        )
+
+    # Increment user request counts
+    User.update(
+        {
+            "api_request_count": user.api_request_count + 1,
+            "request_count": user.request_count + len(prompter_responses),
+        }
+    ).where(User.id == user.id).execute()
+
+    response_dict = {"choices": choices, "failed_responses": failed_responses}
+
+    return response_dict
+
+
+""" Endpoint for calls made with an API-key """
+
 
 @app.post(
     "/chat",
     dependencies=[
         Depends(get_db),
-        Depends(lambda: VerifyAndLimit(Depends(authenticate_api_key))),
+        Depends(lambda: VerifyAPIKeyAndLimit()),
     ],
 )
 async def chat(

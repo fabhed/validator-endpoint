@@ -267,16 +267,16 @@ export const Chat = memo(() => {
       >
         {selectedConversation?.messages.length === 0 || !isAuthenticated ? (
           <>
-            <div className="mx-auto flex flex-col space-y-5 px-3 pt-5 md:pt-12 sm:max-w-[600px]">
+            <div className="mx-auto flex flex-col space-y-1 px-3 pt-5 md:pt-12 sm:max-w-[600px]">
               <div className="text-center text-3xl font-semibold text-gray-800 dark:text-gray-100">
                 {title}
               </div>
               <div className="text-center text-lg text-black dark:text-white">
-                <div className="mb-8">
+                <div className="mb-4">
                   Leverage the decentralized power of Bittensor through an
                   accessible chat interface.
                 </div>
-                {!isAuthenticated && (
+                {!isAuthenticated ? (
                   <>
                     <p>
                       Log in to access the Bittensor network and start chatting
@@ -284,6 +284,10 @@ export const Chat = memo(() => {
                     </p>
                     <LoginButton />
                   </>
+                ) : (
+                  <p className="text-sm">
+                    Your conversations are saved locally on your machine.
+                  </p>
                 )}
               </div>
             </div>

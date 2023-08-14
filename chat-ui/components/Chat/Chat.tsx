@@ -330,7 +330,9 @@ export const Chat = memo(() => {
         onScrollDownClick={handleScrollDown}
         onRegenerate={() => {
           if (currentMessage) {
-            handleSend(currentMessage, 2, null);
+            const deleteCount =
+              selectedConversation?.messages?.at(-1)?.role === 'user' ? 1 : 2;
+            handleSend(currentMessage, deleteCount, null);
           }
         }}
         showScrollDownButton={showScrollDownButton}

@@ -27,6 +27,7 @@ import HomeContext from '@/pages/api/home/home.context';
 
 import LoginButton from '../LoginButton';
 import LogoutButton from '../LogoutButton';
+import Spinner from '../Spinner';
 import { ChatInput } from './ChatInput';
 import { ChatLoader } from './ChatLoader';
 import { MemoizedChatMessage } from './MemoizedChatMessage';
@@ -276,7 +277,11 @@ export const Chat = memo(() => {
                   Leverage the decentralized power of Bittensor through an
                   accessible chat interface.
                 </div>
-                {!isAuthenticated ? (
+                {isLoading ? (
+                  <div className="flex justify-center mx-auto h-12">
+                    <Spinner className="w-10 h-10" />
+                  </div>
+                ) : !isAuthenticated ? (
                   <>
                     <p>
                       Log in to access the Bittensor network and start chatting

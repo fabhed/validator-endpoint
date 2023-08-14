@@ -9,6 +9,7 @@ import HomeContext from '@/pages/api/home/home.context';
 
 import LogoutButton from '@/components/LogoutButton';
 import { SettingDialog } from '@/components/Settings/SettingDialog';
+import Spinner from '@/components/Spinner';
 
 import { Import } from '../../Settings/Import';
 import { SidebarButton } from '../../Sidebar/SidebarButton';
@@ -92,7 +93,11 @@ export const ChatbarSettings = () => {
           <LogoutButton></LogoutButton>
         </div>
       </div>
-      {isAuthenticated ? (
+      {isLoading ? (
+        <div>
+          <Spinner className="h-10 w-10 my-2" />
+        </div>
+      ) : isAuthenticated ? (
         <SidebarButton
           text={user?.name || ''}
           textClassName="flex-grow text-left"

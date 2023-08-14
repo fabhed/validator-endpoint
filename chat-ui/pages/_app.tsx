@@ -30,7 +30,7 @@ function App({ Component, pageProps }: AppProps<{}>) {
         authorizationParams={{
           redirect_uri: 'http://localhost:3000',
           audience: process.env.NEXT_PUBLIC_AUTH0_AUDIENCE,
-          scope: '',
+          scope: 'openid profile email',
         }}
       >
         <QueryClientProvider client={queryClient}>

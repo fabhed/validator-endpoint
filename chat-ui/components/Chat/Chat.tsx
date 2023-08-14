@@ -108,68 +108,58 @@ export const Chat = memo(() => {
           });
 
           if (!response.ok) {
-            homeDispatch({ field: 'loading', value: false });
-            homeDispatch({ field: 'messageIsStreaming', value: false });
-            homeDispatch({
-              field: 'selectedConversation',
-              value: updatedConversation,
-            });
             toast.error(response.statusText);
-          } else {
-            // Response OK!
-            const json = await response.json();
-            console.log('Response', json);
-            homeDispatch({ field: 'loading', value: false });
-            if (!plugin) {
-              if (updatedConversation.messages.length === 1) {
-                const { content } = message;
-                const customName =
-                  content.length > 30
-                    ? content.substring(0, 30) + '...'
-                    : content;
-                updatedConversation = {
-                  ...updatedConversation,
-                  name: customName,
-                };
-              }
-              const updatedMessages: Message[] = [
-                ...updatedConversation.messages,
-                json.choices[0].message,
-              ];
-              updatedConversation = {
-                ...updatedConversation,
-                messages: updatedMessages,
-              };
-              homeDispatch({
-                field: 'selectedConversation',
-                value: updatedConversation,
-              });
-            }
+            return;
           }
+          // Response OK!
+          const json = await response.json();
+          console.log('Response', json);
+          homeDispatch({ field: 'loading', value: false });
+          if (updatedConversation.messages.length === 1) {
+            const { content } = message;
+            const customName =
+              content.length > 30 ? content.substring(0, 30) + '...' : content;
+            updatedConversation = {
+              ...updatedConversation,
+              name: customName,
+            };
+          }
+          const updatedMessages: Message[] = [
+            ...updatedConversation.messages,
+            json.choices[0].message,
+          ];
+          updatedConversation = {
+            ...updatedConversation,
+            messages: updatedMessages,
+          };
         } catch (err) {
           if (err instanceof DOMException && err.name === 'AbortError') {
             console.log('Aborted');
-            homeDispatch({ field: 'loading', value: false });
-            homeDispatch({ field: 'messageIsStreaming', value: false });
           } else {
             console.error('Unexpected error', err);
           }
+        } finally {
+          homeDispatch({
+            field: 'selectedConversation',
+            value: updatedConversation,
+          });
+          homeDispatch({ field: 'loading', value: false });
+          homeDispatch({ field: 'messageIsStreaming', value: false });
+          saveConversation(updatedConversation);
+          const updatedConversations: Conversation[] = conversations.map(
+            (conversation) => {
+              if (conversation.id === selectedConversation.id) {
+                return updatedConversation;
+              }
+              return conversation;
+            },
+          );
+          if (updatedConversations.length === 0) {
+            updatedConversations.push(updatedConversation);
+          }
+          homeDispatch({ field: 'conversations', value: updatedConversations });
+          saveConversations(updatedConversations);
         }
-        saveConversation(updatedConversation);
-        const updatedConversations: Conversation[] = conversations.map(
-          (conversation) => {
-            if (conversation.id === selectedConversation.id) {
-              return updatedConversation;
-            }
-            return conversation;
-          },
-        );
-        if (updatedConversations.length === 0) {
-          updatedConversations.push(updatedConversation);
-        }
-        homeDispatch({ field: 'conversations', value: updatedConversations });
-        saveConversations(updatedConversations);
-        homeDispatch({ field: 'messageIsStreaming', value: false });
       }
     },
     [selectedConversation, homeDispatch, getAccessTokenSilently, conversations],

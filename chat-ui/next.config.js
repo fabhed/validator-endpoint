@@ -13,6 +13,16 @@ const nextConfig = {
 
     return config;
   },
+  images: {
+    remotePatterns: [
+      {
+        hostname: 'lh3.googleusercontent.com',
+      },
+      {
+        hostname: 's.gravatar.com',
+      },
+    ],
+  },
 };
 
 module.exports = nextConfig;

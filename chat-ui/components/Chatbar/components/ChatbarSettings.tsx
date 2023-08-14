@@ -3,6 +3,7 @@ import { IconDots, IconFileExport, IconSettings } from '@tabler/icons-react';
 import { useContext, useEffect, useRef, useState } from 'react';
 
 import { useTranslation } from 'next-i18next';
+import Image from 'next/image';
 
 import HomeContext from '@/pages/api/home/home.context';
 
@@ -96,11 +97,17 @@ export const ChatbarSettings = () => {
           text={user?.name || ''}
           textClassName="flex-grow text-left"
           icon={
-            <img
-              src={user?.picture}
-              alt={user?.name}
-              style={{ maxWidth: '40px', flexGrow: 1 }}
-            />
+            user?.picture ? (
+              <Image
+                src={user?.picture}
+                alt={user?.name || 'Profle Picture'}
+                style={{ maxWidth: '40px', flexGrow: 1 }}
+                width={40}
+                height={40}
+              />
+            ) : (
+              <div></div>
+            )
           }
           iconRight={
             <IconDots className="text-gray-600" size="1.2em"></IconDots>

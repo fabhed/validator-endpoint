@@ -28,7 +28,9 @@ function App({ Component, pageProps }: AppProps<{}>) {
         domain={AUTH0_DOMAIN}
         clientId={AUTH0_CLIENT_ID}
         authorizationParams={{
-          redirect_uri: 'http://localhost:3000',
+          redirect_uri:
+            process.env.NEXT_PUBLIC_AUTH0_REDIRECT_URI ||
+            'http://localhost:3000',
           audience: process.env.NEXT_PUBLIC_AUTH0_AUDIENCE,
           scope: 'openid profile email',
         }}

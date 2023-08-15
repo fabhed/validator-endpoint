@@ -56,9 +56,13 @@ const handler = async (req: Request): Promise<Response> => {
   } catch (error) {
     console.error(error);
     if (error instanceof ValidatorEndpointError) {
-      return new Response('Error', { status: 500, statusText: error.message });
+      return new Response(JSON.stringify({ error: error.message }), {
+        status: 500,
+      });
     } else {
-      return new Response('Error', { status: 500 });
+      return new Response(JSON.stringify({ error: 'Unknown error' }), {
+        status: 500,
+      });
     }
   }
 };

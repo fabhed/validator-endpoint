@@ -108,7 +108,11 @@ export const Chat = memo(() => {
           });
 
           if (!response.ok) {
-            toast.error(response.statusText);
+            try {
+              toast.error((await response.json())?.error);
+            } catch (err) {
+              toast.error('Unexpected error');
+            }
             return;
           }
           // Response OK!

@@ -3,6 +3,7 @@ import {
   IconArrowBack,
   IconCopy,
   IconEdit,
+  IconExternalLink,
   IconPlus,
   IconTrash,
 } from '@tabler/icons-react';
@@ -22,6 +23,9 @@ import { ApiKeyModal } from '@/components/Profile/ApiKeyModal';
 import Spinner from '@/components/Spinner';
 
 import { DateTime } from 'luxon';
+
+const requestDocsUrl =
+  'https://github.com/fabhed/validator-endpoint/blob/main/docs/requests.md';
 
 const Profile = () => {
   const [showModal, setShowModal] = useState<boolean>(false);
@@ -227,11 +231,21 @@ const Profile = () => {
                   ))}
               </tbody>
             </table>
-            <Button onClick={createApiKey}>
-              {' '}
-              <IconPlus size={'1em'} />
-              Create API Key
-            </Button>
+            <div className="flex justify-between">
+              <Button onClick={createApiKey}>
+                {' '}
+                <IconPlus size={'1em'} />
+                Create API Key
+              </Button>
+              <a
+                href={requestDocsUrl}
+                target="_blank"
+                className="text-lg flex gap-1 items-center font-medium text-blue-600 dark:text-blue-500 hover:underline"
+              >
+                Request guide
+                <IconExternalLink size="1em" />
+              </a>
+            </div>
           </section>
         </div>
       </main>

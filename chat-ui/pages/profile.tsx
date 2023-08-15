@@ -1,55 +1,124 @@
 import { useAuth0 } from '@auth0/auth0-react';
-import { IconArrowBack, IconEdit, IconTrash } from '@tabler/icons-react';
+import {
+  IconArrowBack,
+  IconCopy,
+  IconEdit,
+  IconPlus,
+  IconTrash,
+} from '@tabler/icons-react';
+import { useMutation, useQuery } from '@tanstack/react-query';
+import { useEffect, useState } from 'react';
 
 import Head from 'next/head';
 import Image from 'next/image';
 import { useRouter } from 'next/router';
 
+import { useAPIFetch } from '../hooks/useAPIFetch';
+
 import { title } from '@/utils/app/const';
 
+import Button from '@/components/Button';
+import { ApiKeyModal } from '@/components/Profile/ApiKeyModal';
 import Spinner from '@/components/Spinner';
 
 import { DateTime } from 'luxon';
 
-const apiKeys = [
-  {
-    id: '1',
-    api_key: 'rGp44wdyik8fJvnfNv4rHgkTyOLXPBxYTKA86wdsZfPqe3yKucrlkxn0oA8EOH_z',
-    api_key_hint: '...OH_z',
-    name: 'New API Key',
-    request_count: '0',
-    valid_until: '1687816800',
-    credits: '-1',
-    enabled: '0',
-    rate_limits: null,
-    created_at: '1687015275',
-    updated_at: '1687024970',
-    api_request_count: '0',
-    rate_limits_enabled: '0',
-  },
-  {
-    id: '2',
-    api_key: 'rm-z_EljnCoi6O3BoAgU98tYKGwBt_uO8ueoCp0uYTcTYnsodZPnYYJPQ1ga7Gt7',
-    api_key_hint: '...7Gt7',
-    name: 'New API Key',
-    request_count: '0',
-    valid_until: '-1',
-    credits: '-1',
-    enabled: '1',
-    rate_limits: null,
-    created_at: '1687015350',
-    updated_at: '1687015350',
-    api_request_count: '0',
-    rate_limits_enabled: '0',
-  },
-];
-
 const Profile = () => {
+  const [showModal, setShowModal] = useState<boolean>(false);
+  const [modalType, setModalType] = useState<'edit' | 'new'>('edit');
+  const [apiKey, setApiKey] = useState(null);
+
   const router = useRouter();
   const { user, isAuthenticated, isLoading } = useAuth0();
 
+  const apiFetch = useAPIFetch();
+
+  const {
+    isLoading: apiKeysIsLoading,
+    error: apiKeyError,
+    data: apiKeys,
+    refetch: refetchApiKeys,
+  } = useQuery({
+    queryKey: ['repoData'],
+    queryFn: () => apiFetch('/api-keys/'),
+  });
+
+  useEffect(() => {
+    if (!isLoading && !isAuthenticated) {
+      router.push('/');
+    }
+  }, [isLoading, isAuthenticated, router]);
+
+  const updateMutation = useMutation({
+    mutationFn: (apiKey: any) =>
+      apiFetch('/api-keys/' + apiKey.id, {
+        method: 'PATCH',
+        body: JSON.stringify(apiKey),
+      }),
+    onSuccess: (data) => {
+      refetchApiKeys();
+    },
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: (apiKey: any) =>
+      apiFetch('/api-keys/' + apiKey.id, {
+        method: 'DELETE',
+      }),
+    onSuccess: (data) => {
+      refetchApiKeys();
+    },
+  });
+
+  const createMutation = useMutation({
+    mutationFn: (apiKey: any) =>
+      apiFetch('/api-keys/', {
+        method: 'POST',
+        body: JSON.stringify(apiKey),
+      }),
+    onSuccess: (data) => {
+      refetchApiKeys();
+    },
+  });
+
+  const handleApiKeyUpdate = async (apiKey: any) => {
+    await updateMutation.mutate(apiKey);
+  };
+
+  const editApiKey = (apiKey: any) => {
+    setApiKey(apiKey);
+    setModalType('edit');
+    setShowModal(true);
+  };
+
+  const createApiKey = () => {
+    createMutation.mutate({});
+  };
+
+  const deleteApiKey = (apiKey: any) => {
+    deleteMutation.mutate(apiKey);
+  };
+
+  const handleCopy = (text: string) => {
+    navigator.clipboard
+      .writeText(text)
+      .then(() => console.log('API Key copied to clipboard'))
+      .catch((err) =>
+        console.error('Could not copy API Key to clipboard', err),
+      );
+  };
+
   return (
     <>
+      {showModal &&
+        (modalType === 'new' || (modalType === 'edit' && apiKey)) && (
+          <ApiKeyModal
+            apiKey={apiKey}
+            onClose={() => setShowModal(false)}
+            onUpdate={handleApiKeyUpdate}
+            type={modalType}
+          />
+        )}
       <Head>
         <title>{title}</title>
         <meta name="description" content="Manage Usage & API Keys" />
@@ -106,7 +175,7 @@ const Profile = () => {
             {/* Content related to Lifetime-Usage */}
           </section>
 
-          <section>
+          <section className="space-y-4">
             <h2 className="text-lg">API keys</h2>
             <table className="table-auto w-full text-sm text-left">
               <thead className="text-xs uppercase ">
@@ -120,29 +189,49 @@ const Profile = () => {
                 </tr>
               </thead>
               <tbody>
-                {apiKeys.map((key) => (
-                  <tr key={key.id}>
-                    <td className="px-4 py-1">{key.name}</td>
-                    <td className="px-4 py-1">{key.api_key_hint}</td>
-                    <td className="px-4 py-1">
-                      {DateTime.fromSeconds(Number(key.created_at)).toFormat(
-                        'MMM dd, yyyy',
-                      )}
-                    </td>
-                    <td className="px-4 py-1">{key.credits}</td>
-                    <td className="px-4 py-1">{key.api_request_count}</td>
-                    <td className="px-4 py-1 flex">
-                      <button className="hover:bg-slate-600 p-1 rounded-md">
-                        <IconEdit size="1em"></IconEdit>
-                      </button>
-                      <button className="hover:bg-slate-600 p-1 rounded-md ml-2">
-                        <IconTrash size="1em"></IconTrash>
-                      </button>
-                    </td>
-                  </tr>
-                ))}
+                {apiKeys &&
+                  apiKeys.map((apiKey: any) => (
+                    <tr key={apiKey.id}>
+                      <td className="px-4 py-1">{apiKey.name}</td>
+                      <td className="px-4 py-1 flex gap-1 items-center">
+                        {apiKey.api_key_hint}{' '}
+                        <button
+                          title="Copy"
+                          onClick={() => handleCopy(apiKey.api_key)}
+                        >
+                          <IconCopy size="1em"></IconCopy>
+                        </button>
+                      </td>
+                      <td className="px-4 py-1">
+                        {DateTime.fromSeconds(
+                          Number(apiKey.created_at),
+                        ).toFormat('MMM dd, yyyy')}
+                      </td>
+                      <td className="px-4 py-1">{apiKey.credits}</td>
+                      <td className="px-4 py-1">{apiKey.request_count}</td>
+                      <td className="px-4 py-1 flex">
+                        <button
+                          className="hover:bg-slate-600 p-1 rounded-md"
+                          onClick={() => editApiKey(apiKey)}
+                        >
+                          <IconEdit size="1em"></IconEdit>
+                        </button>
+                        <button
+                          className="hover:bg-slate-600 p-1 rounded-md ml-2"
+                          onClick={() => deleteApiKey(apiKey)}
+                        >
+                          <IconTrash size="1em"></IconTrash>
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
               </tbody>
             </table>
+            <Button onClick={createApiKey}>
+              {' '}
+              <IconPlus size={'1em'} />
+              Create API Key
+            </Button>
           </section>
         </div>
       </main>

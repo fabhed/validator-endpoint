@@ -1,6 +1,6 @@
 import {
   DEFAULT_SYSTEM_PROMPT,
-  VALIDATOR_ENDPOINT_BASE_URL,
+  NEXT_PUBLIC_VALIDATOR_ENDPOINT_BASE_URL,
 } from '@/utils/app/const';
 
 import { ChatBody, Message } from '@/types/chat';
@@ -27,7 +27,7 @@ const handler = async (req: Request): Promise<Response> => {
       messagesToSend = [message, ...messagesToSend];
     }
 
-    const url = VALIDATOR_ENDPOINT_BASE_URL + '/conversation';
+    const url = NEXT_PUBLIC_VALIDATOR_ENDPOINT_BASE_URL + '/conversation';
     const body = {
       messages: [
         {

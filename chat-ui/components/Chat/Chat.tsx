@@ -59,7 +59,12 @@ export const Chat = memo(() => {
   };
 
   const handleSend = useCallback(
-    async (message: Message, deleteCount = 0, plugin: Plugin | null = null) => {
+    async (
+      message: Message,
+      deleteCount = 0,
+      plugin: Plugin | null = null,
+      uid?: undefined | number,
+    ) => {
       if (selectedConversation) {
         let updatedConversation: Conversation;
         if (deleteCount) {
@@ -90,6 +95,7 @@ export const Chat = memo(() => {
           messages: updatedConversation.messages,
           key: access_token,
           prompt: updatedConversation.prompt,
+          uid,
         };
         console.log('Messages in request', chatBody.messages);
 
@@ -327,9 +333,9 @@ export const Chat = memo(() => {
       <ChatInput
         onStopConversation={handleStopConversation}
         textareaRef={textareaRef}
-        onSend={(message, plugin) => {
+        onSend={(message, uid, plugin) => {
           setCurrentMessage(message);
-          handleSend(message, 0, plugin);
+          handleSend(message, 0, plugin, uid);
         }}
         onScrollDownClick={handleScrollDown}
         onRegenerate={() => {

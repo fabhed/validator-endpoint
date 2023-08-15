@@ -10,15 +10,17 @@ export const config = {
 };
 
 export class ValidatorEndpointError extends Error {
-  constructor(message: string) {
-    super(message);
+  failed_responses: any[];
+  constructor(json: any) {
+    super(json?.detail || 'Unknown error');
     this.name = 'ValidatorEndpointError';
+    this.failed_responses = json?.failed_responses || [];
   }
 }
 
 const handler = async (req: Request): Promise<Response> => {
   try {
-    const { messages, key, prompt } = (await req.json()) as ChatBody;
+    const { messages, key, prompt, uid } = (await req.json()) as ChatBody;
 
     let messagesToSend: Message[] = [];
 
@@ -28,6 +30,15 @@ const handler = async (req: Request): Promise<Response> => {
     }
 
     const url = NEXT_PUBLIC_VALIDATOR_ENDPOINT_BASE_URL + '/conversation';
+    const strategy: {
+      uids?: number[];
+      top_n?: number;
+    } = {};
+    if (uid !== undefined) {
+      strategy.uids = [uid];
+    } else {
+      strategy.top_n = 1;
+    }
     const body = {
       messages: [
         {
@@ -36,7 +47,7 @@ const handler = async (req: Request): Promise<Response> => {
         },
         ...messages,
       ],
-      top_n: 1,
+      ...strategy,
     };
     const res = await fetch(url, {
       headers: {
@@ -49,16 +60,22 @@ const handler = async (req: Request): Promise<Response> => {
 
     if (res.status !== 200) {
       const json = await res.json();
-      throw new ValidatorEndpointError(json?.detail || 'Unknown error');
+      throw new ValidatorEndpointError(json);
     }
     const text = await res.text();
     return new Response(text);
   } catch (error) {
     console.error(error);
     if (error instanceof ValidatorEndpointError) {
-      return new Response(JSON.stringify({ error: error.message }), {
-        status: 500,
-      });
+      return new Response(
+        JSON.stringify({
+          error: error.message,
+          failed_responses: error.failed_responses,
+        }),
+        {
+          status: 500,
+        },
+      );
     } else {
       return new Response(JSON.stringify({ error: 'Unknown error' }), {
         status: 500,

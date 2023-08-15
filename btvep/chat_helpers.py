@@ -24,13 +24,12 @@ def setup_async_loop():
 
 # Querying the Network
 async def query_network(
-    validator_prompter: ValidatorPrompter,
     messages: List[Message],
     uids: List[int],
     top_n: int,
 ) -> dict:
     try:
-        return await validator_prompter.query_network(
+        return await ValidatorPrompter().query_network(
             messages=messages, uids=uids, top_n=top_n
         )
     except MetagraphNotSyncedException as e:

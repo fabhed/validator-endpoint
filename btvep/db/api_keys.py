@@ -3,9 +3,17 @@ import json
 import secrets
 import time
 
-from peewee import BooleanField, DateTimeField, DoesNotExist, IntegerField, TextField
+from peewee import (
+    BooleanField,
+    DateTimeField,
+    DoesNotExist,
+    IntegerField,
+    TextField,
+    ForeignKeyField,
+)
 from tabulate import tabulate
 from btvep.btvep_models import RateLimitEntry
+from btvep.db.user import User
 
 from btvep.models.key import ApiKeyInDB
 
@@ -19,6 +27,7 @@ class ApiKey(BaseModel):
     api_key = TextField(unique=True)
     api_key_hint = TextField()
     name = TextField(null=True)
+    user = ForeignKeyField(User, field="id", backref="api_keys", null=True)
     # Number of requests to the bittensor network
     request_count = IntegerField(default=0)
     # Number of requests to the validator-endpoint api (one api request can make multiple bittensor requests)
@@ -93,8 +102,26 @@ def get_all() -> list[ApiKeyInDB]:
     return [key for key in ApiKey.select().dicts().order_by(ApiKey.id.desc())]
 
 
+def get_all_by_user_id(user_id: str) -> list[ApiKeyInDB]:
+    return [
+        key
+        for key in ApiKey.select()
+        .where((ApiKey.user == user_id))
+        .dicts()
+        .order_by(ApiKey.id.desc())
+    ]
+
+
 def update(
+    #
+    # Query fields
+    #
     query: str | int,
+    # user_id is Additional to query, to prevent users from editing other users' keys
+    user_id: str = None,
+    #
+    # Update fields
+    #
     api_key_hint: str = None,
     name: str = None,
     request_count: int = None,
@@ -121,15 +148,30 @@ def update(
         "rate_limits_enabled": rate_limits_enabled,
     }
     update_dict = {k: v for k, v in update_dict.items() if v is not None}
-    q = ApiKey.update(update_dict).where(
-        (ApiKey.id == query) | (ApiKey.api_key == query)
-    )
-    return q.execute()
+
+    q = ApiKey.update(update_dict)
+    criteria = (ApiKey.id == query) | (ApiKey.api_key == query)
+
+    # Add user_id to criteria if it is provided
+    if user_id is not None:
+        criteria &= ApiKey.user_id == user_id
+
+    return q.where(criteria).execute()
 
 
-def delete(query: str | int):
-    return (
-        ApiKey.delete()
-        .where((ApiKey.id == query) | (ApiKey.api_key == query))
-        .execute()
-    )
+def delete(id_or_key: str | int, user_id: str = None):
+    """
+    Delete an API key.
+    """
+
+    # Start the query
+    q = ApiKey.delete()
+
+    # Base criteria
+    criteria = (ApiKey.id == id_or_key) | (ApiKey.api_key == id_or_key)
+
+    # Add user_id to criteria if it is provided
+    if user_id is not None:
+        criteria &= ApiKey.user_id == user_id
+
+    return q.where(criteria).execute()

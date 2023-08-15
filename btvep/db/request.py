@@ -4,6 +4,7 @@ from peewee import *
 from tabulate import tabulate
 
 from btvep.db.api_keys import ApiKey
+from btvep.db.user import User
 
 from .utils import db
 
@@ -11,7 +12,7 @@ from .utils import db
 class Request(Model):
     id = AutoField()
     api_key = ForeignKeyField(ApiKey, field="api_key", backref="requests", null=True)
-    user = ForeignKeyField(ApiKey, field="id", backref="requests", null=True)
+    user = ForeignKeyField(User, field="id", backref="requests", null=True)
     timestamp = IntegerField(default=lambda: int(time.time()))
     prompt = TextField()
 

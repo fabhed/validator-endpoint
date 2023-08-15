@@ -1,9 +1,10 @@
 import asyncio
 from typing import List, Optional
 
-from bittensor import Keypair, metagraph, text_prompting
+from bittensor import Keypair, metagraph, text_prompting, Keypair
 
 from btvep.btvep_models import Message
+from btvep.constants import DEFAULT_NETUID
 from btvep.metagraph import MetagraphSyncer
 
 
@@ -18,9 +19,35 @@ class ValidatorPrompter:
     so we want initialize it once and then reuse the instance for api requests.
     """
 
-    def __init__(self, hotkey: Keypair, metagraph_syncer: MetagraphSyncer):
-        self.metagraph_syncer: MetagraphSyncer = metagraph_syncer
-        self.hotkey = hotkey
+    _instance = None
+    _initialized_with: str | None = (
+        None  # Store the mnemonic used to initialize the instance
+    )
+
+    def __new__(cls, hotkey_mnemonic: str | None = None):
+        if cls._instance is None:
+            cls._instance = super(ValidatorPrompter, cls).__new__(cls)
+            # initialization logic for the first instance
+            cls._initialized_with = hotkey_mnemonic
+            if hotkey_mnemonic is None:
+                raise ValueError(
+                    "ValidatorPrompter must be initialized with a mnemonic!"
+                )
+            cls._instance._initialize(hotkey_mnemonic)
+        elif hotkey_mnemonic is not None and cls._initialized_with != hotkey_mnemonic:
+            raise ValueError(
+                "ValidatorPrompter has already been initialized with a different mnemonic!"
+            )
+        return cls._instance
+
+    def _initialize(self, hotkey_mnemonic: str):
+        print("hotkey_mnemonic", hotkey_mnemonic)
+        self.metagraph_syncer = MetagraphSyncer(DEFAULT_NETUID)
+        self.metagraph_syncer.start_sync_thread()
+        self.hotkey = Keypair.create_from_mnemonic(hotkey_mnemonic)
+
+    def __init__(self, *args, **kwargs):
+        pass
 
     def _get_dendrite(self, uid):
         if self.metagraph_syncer.metagraph is None:

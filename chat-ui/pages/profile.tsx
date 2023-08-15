@@ -137,7 +137,7 @@ const Profile = () => {
           <div className="flex items-center mb-4 text-4xl">
             <button
               onClick={() => {
-                router.back();
+                router.push('/');
               }}
               className="mr-4"
             >

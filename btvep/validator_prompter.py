@@ -41,7 +41,6 @@ class ValidatorPrompter:
         return cls._instance
 
     def _initialize(self, hotkey_mnemonic: str):
-        print("hotkey_mnemonic", hotkey_mnemonic)
         self.metagraph_syncer = MetagraphSyncer(DEFAULT_NETUID)
         self.metagraph_syncer.start_sync_thread()
         self.hotkey = Keypair.create_from_mnemonic(hotkey_mnemonic)

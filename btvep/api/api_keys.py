@@ -1,27 +1,30 @@
-from datetime import datetime
 from typing import List, Optional
 
-import dateparser
 from fastapi import APIRouter, Body, Depends, HTTPException
 from playhouse.shortcuts import model_to_dict
+from pydantic import BaseModel
 from btvep.api.dependencies import authenticate_user
 
 from btvep.db import api_keys
 from btvep.db.user import User
 from btvep.models.key import ApiKeyInDB
-from btvep.btvep_models import RateLimitEntry
 
 router = APIRouter()
 
 
+class APIKeyRequest(BaseModel):
+    name: Optional[str] = "New API Key"
+
+
 @router.post("/", status_code=201, response_model=ApiKeyInDB)
 def create_api_key(
-    name: Optional[str] = Body(None), user: User = Depends(authenticate_user)
+    request: APIKeyRequest,
+    user: User = Depends(authenticate_user),
 ):
     """
     Create a new API key.
     """
-    api_key = api_keys.insert(name=name, user_id=user.id)
+    api_key = api_keys.insert(name=request.name, user_id=user.id)
     return model_to_dict(api_key)
 
 

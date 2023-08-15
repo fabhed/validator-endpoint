@@ -60,6 +60,7 @@ class ApiKey(BaseModel):
 
 def insert(
     api_key: str = None,
+    user_id: str = None,
     request_count: int = 0,
     api_request_count: int = 0,
     valid_until: int = -1,
@@ -72,6 +73,7 @@ def insert(
 
     return ApiKey.create(
         api_key=api_key,
+        user_id=user_id,
         api_key_hint="..." + api_key[-4:],
         request_count=request_count,
         api_request_count=api_request_count,

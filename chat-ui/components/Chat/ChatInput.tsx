@@ -254,7 +254,7 @@ export const ChatInput = ({
   }, []);
 
   const [isQuerySettingsModalVisible, setIsQuerySettingsModalVisible] =
-    useState(true);
+    useState(false);
   return (
     <>
       {isQuerySettingsModalVisible && (

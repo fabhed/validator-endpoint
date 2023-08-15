@@ -1,12 +1,19 @@
 import { useAuth0 } from '@auth0/auth0-react';
-import { IconDots, IconFileExport, IconSettings } from '@tabler/icons-react';
+import {
+  IconDots,
+  IconFileExport,
+  IconSettings,
+  IconUser,
+} from '@tabler/icons-react';
 import { useContext, useEffect, useRef, useState } from 'react';
 
 import { useTranslation } from 'next-i18next';
 import Image from 'next/image';
+import { useRouter } from 'next/router';
 
 import HomeContext from '@/pages/api/home/home.context';
 
+import DropdownButton from '@/components/DropdownButton';
 import LogoutButton from '@/components/LogoutButton';
 import { SettingDialog } from '@/components/Settings/SettingDialog';
 import Spinner from '@/components/Spinner';
@@ -17,6 +24,8 @@ import ChatbarContext from '../Chatbar.context';
 import { ClearConversations } from './ClearConversations';
 
 export const ChatbarSettings = () => {
+  const router = useRouter();
+
   const { user, isAuthenticated, isLoading } = useAuth0();
 
   const { t } = useTranslation('sidebar');
@@ -85,11 +94,15 @@ export const ChatbarSettings = () => {
       <div className="w-full relative">
         <div
           ref={modalRef}
-          className={`bg-black transition-all absolute flex bottom-0 w-full rounded ${
+          className={`bg-black transition-all absolute flex flex-col bottom-0 w-full rounded ${
             isProfileDropdownOpen ? '' : 'h-0 hidden'
           }
           `}
         >
+          <DropdownButton onClick={() => router.push('/profile')}>
+            <IconUser size="1.25em"></IconUser>
+            Usage & API-keys
+          </DropdownButton>
           <LogoutButton></LogoutButton>
         </div>
       </div>
@@ -105,7 +118,7 @@ export const ChatbarSettings = () => {
             user?.picture ? (
               <Image
                 src={user?.picture}
-                alt={user?.name || 'Profle Picture'}
+                alt={user?.name || 'Profile Picture'}
                 style={{ maxWidth: '40px', flexGrow: 1 }}
                 width={40}
                 height={40}

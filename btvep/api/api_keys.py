@@ -12,13 +12,13 @@ from btvep.models.key import ApiKeyInDB
 router = APIRouter()
 
 
-class APIKeyRequest(BaseModel):
+class ApiKeyRequest(BaseModel):
     name: Optional[str] = "New API Key"
 
 
 @router.post("/", status_code=201, response_model=ApiKeyInDB)
 def create_api_key(
-    request: APIKeyRequest,
+    request: ApiKeyRequest,
     user: User = Depends(authenticate_user),
 ):
     """
@@ -50,7 +50,7 @@ def delete_api_key(query: str, user: User = Depends(authenticate_user)):
 @router.patch("/{query}")
 def edit_api_key(
     query: str,
-    name: Optional[str] = Body(None),
+    request: ApiKeyRequest,
     user: User = Depends(authenticate_user),
 ):
     """
@@ -60,7 +60,7 @@ def edit_api_key(
         query=query,
         user_id=user.id,
         # Only allow name to be updated
-        name=name,
+        name=request.name,
     )
     updated_key = api_keys.get(query)
     if updated_key is None:

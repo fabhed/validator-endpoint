@@ -104,7 +104,7 @@ def process_responses(
             )
             failed_index += 1
 
-    all_failed = len(failed_responses) == len(choices)
+    all_failed = len(failed_responses) == len(prompter_responses)
     return choices, failed_responses, all_failed
 
 

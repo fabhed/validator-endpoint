@@ -280,7 +280,10 @@ const Home = ({
     >
       <Head>
         <title>{title}</title>
-        <meta name="description" content="ChatGPT but better." />
+        <meta
+          name="description"
+          content="Chat with AI via the Bittensor network"
+        />
         <meta
           name="viewport"
           content="height=device-height ,width=device-width, initial-scale=1, user-scalable=no"

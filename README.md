@@ -174,7 +174,7 @@ This will send the prompt to the top 5 miners, change `top_n` to 1 to only query
 ```bash
 # Clone the repo
 git clone https://github.com/fabhed/validator-endpoint.git
-cd validator-endpoint
+cd validator-endpoint/btvep
 
 # Install depedencies
 poetry install
@@ -190,22 +190,28 @@ btvep --help
 
 # Run the server with auto reloading
 btvep start --reload
+
+# You can also directly execute this command to avoid having to launch a poetry shell
+poetry run btvep start --reload
 ```
 
 ### Generate docs
 
 ```bash
+# Run under ./btvep folder
 poetry run typer btvep.cli utils docs --output docs/cli.md --name btvep
 ```
 
 ### Build .whl files in /dist
 
 ```bash
+# Run under ./btvep folder
 poetry build
 ```
 
 ### grpcio dependency (from bittensor) arm fix
 
-```
+```bash
+# Run under ./btvep folder
 python3 -m pip install --no-binary :all: grpcio --ignore-installed
 ```

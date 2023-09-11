@@ -8,13 +8,18 @@
 
 </div>
 
-Allow validators to easily host an API for other services to prompt the Bittensor network.
+## Overview
+
+- `btvep` - Contains the backend, which includes an API and CLI, written in python. `btvep` Allows validators to easily host an API for other services to prompt the Bittensor network.
+- `admin-ui` - Admin interface for validator owners to view all and manage API-keys and request logs (similar to the cli, but more approachable and )
+- `chat-ui` - An end-user interface similar to ChatGPT, but powered by Bittensor. This interface is made to work out of the box with the backend API.
 
 ## Features
 
+### `btvep`
+
 - Host an API server with API key authentication
-- Web Dashboard for statistics, configuration and key management
-- [`btvep`](./docs/cli.md) CLI for configuration and key management
+- [`btvep` CLI](./docs/cli.md) for configuration and key management
 - API key lifetimes - set expiry dates
 - API key credits - limit amount of requests with credits
 - Request logs
@@ -25,6 +30,18 @@ Allow validators to easily host an API for other services to prompt the Bittenso
   - `top_n` - Query top n incentive miners. This allows for querying the whole network with one request, e.g. setting top_n to the number of uids on the subnet.
   - `uids` - Query specific uids.
   - `default` - When no strategy is specified in the request, query a default uid. This should normaly be the validator itself to utilize its own miner selection model for prompts.
+
+### `admin-ui`
+
+- View request logs
+- Manage API-keys (same functionality as cli)
+- Manage API configuration
+- Preview CURL-requests
+
+### `chat-ui`
+
+- Chat interface like ChatGPT
+- Signup & Login via Github, Google or Username/Password (Requires Auth0 setup)
 
 ## Planned features
 

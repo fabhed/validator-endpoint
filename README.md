@@ -40,13 +40,12 @@
 
 ### `chat-ui`
 
-- Chat interface like ChatGPT
+- A frontend for end users to query the backend, similar to chat.openai.com
+  Users can on the same page also specify UIDs, and search through UIDs with descriptions/tags. Login system via email & password, Google and Github
 - Signup & Login via Github, Google or Username/Password (Requires Auth0 setup)
 
 ## Planned features
 
-- A frontend for end users to query the backend, similar to chat.openai.com
-  Users can on the same page also specify UIDs, and search through UIDs with descriptions/tags. Login system via email & password, Google and Github
 - Adding options for payment for credits. Payment could for example be handled with TAO or an integration with Stripe for card payments.
 - Add additional future subnetworks, ex for image and audio.
 - LangChain integration
@@ -55,7 +54,7 @@
 
 ```bash
 # Install with pip
-python3 -m pip install https://github.com/fabhed/validator-endpoint/raw/main/dist/btvep-0.1.1-py3-none-any.whl
+python3 -m pip install https://github.com/fabhed/validator-endpoint/raw/main/dist/btvep-0.2.0-py3-none-any.whl
 # Set your hotkey mnemonic (quotes are needed since the mnemonic has spaces in it)
 btvep config set hotkey_mnemonic "my_validators_secret_mnemonic_phrase_here"
 # Create an API key

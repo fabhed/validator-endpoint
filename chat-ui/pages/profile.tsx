@@ -9,6 +9,7 @@ import {
 } from '@tabler/icons-react';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { useEffect, useState } from 'react';
+import toast from 'react-hot-toast';
 
 import Head from 'next/head';
 import Image from 'next/image';
@@ -18,6 +19,7 @@ import { useAPIFetch } from '../hooks/useAPIFetch';
 
 import { title } from '@/utils/app/const';
 
+import { APIKeyOperations } from '@/components/APIKeyOperations';
 import Button from '@/components/Button';
 import { ApiKeyModal } from '@/components/Profile/ApiKeyModal';
 import Spinner from '@/components/Spinner';
@@ -110,6 +112,7 @@ const Profile = () => {
       .catch((err) =>
         console.error('Could not copy API Key to clipboard', err),
       );
+    toast.success('API Key copied to clipboard!');
   };
 
   return (
@@ -246,6 +249,11 @@ const Profile = () => {
                 <IconExternalLink size="1em" />
               </a>
             </div>
+            <APIKeyOperations
+              prompt={'Tell a joke'}
+              url={process.env.NEXT_PUBLIC_VALIDATOR_ENDPOINT_BASE_URL!}
+              apiKeys={apiKeys || []}
+            />
           </section>
         </div>
       </main>

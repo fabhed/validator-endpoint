@@ -4,7 +4,7 @@
 
 ```bash
 # Install with pip
-python3 -m pip install https://github.com/fabhed/validator-endpoint/raw/main/dist/btvep-0.2.0-py3-none-any.whl
+python3 -m pip install https://github.com/fabhed/validator-endpoint/raw/main/btvep/dist/btvep-0.2.0-py3-none-any.whl
 # Set your hotkey mnemonic (quotes are needed since the mnemonic has spaces in it)
 btvep config set hotkey_mnemonic "my_validators_secret_mnemonic_phrase_here"
 # Create an API key

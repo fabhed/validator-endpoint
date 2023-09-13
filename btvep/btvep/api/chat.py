@@ -24,7 +24,7 @@ async def chat(
     top_n: Annotated[
         int | None,
         Body(
-            description="Query top miners based on incentive in the network. If set to for example 5, the top 5 miners will be sent the request. This parameter takes precidence over the uids parameter."
+            description="Query top miners based on incentive in the network. If set to for example 5, the top 5 miners will be sent the request. This parameter takes precedence over the uids parameter."
         ),
     ] = None,
     messages: Annotated[List[Message] | None, Body()] = None,

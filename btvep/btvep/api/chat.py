@@ -17,10 +17,38 @@ from btvep.db.api_keys import update as update_api_key
 router = APIRouter()
 
 
+def apply_default_query_strategy(
+    uids: List[int] | None, top_n: int | None, default_query_strategy: str | None
+) -> (List[int] | None, int | None):
+    """
+    Apply the default query strategy if neither uids nor top_n are specified.
+    If no strategy is set, it returns DEFAULT_UIDS.
+
+    Args:
+    - uids: List of user ids or None.
+    - top_n: Top n users or None.
+    - default_query_strategy: The default strategy string.
+
+    Returns:
+    - Tuple containing modified uids and top_n.
+    """
+    if uids is None and top_n is None:
+        if default_query_strategy:
+            strategy = default_query_strategy.split(":")
+            if strategy[0] == "top_n":
+                top_n = int(strategy[1])
+            elif strategy[0] == "uids":
+                uids = list(map(int, strategy[1].split(",")))
+        else:
+            uids = DEFAULT_UIDS
+
+    return uids, top_n
+
+
 @router.post("/chat")
 async def chat(
     authorization: Annotated[str | None, Header()] = None,
-    uids: Annotated[List[int] | None, Body()] = DEFAULT_UIDS,
+    uids: Annotated[List[int] | None, Body()] = None,
     top_n: Annotated[
         int | None,
         Body(
@@ -31,6 +59,9 @@ async def chat(
     api_key: ApiKey = Depends(authenticate_api_key),
 ) -> ChatResponse:
     setup_async_loop()
+    uids, top_n = apply_default_query_strategy(
+        uids, top_n, api_key.default_query_strategy
+    )
     prompter_responses = await query_network(messages, uids, top_n)
     choices, failed_responses, all_failed = process_responses(
         prompter_responses, messages, authorization

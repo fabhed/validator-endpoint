@@ -48,7 +48,7 @@ export const APIKeyOperations = ({
       apiKey,
       url,
       uids: selection === "uids" ? strToArr(uids) : undefined,
-      top_n: selection === "topN" ? top_n : undefined,
+      top_n: selection === "top_n" ? top_n : undefined,
     });
     navigator.clipboard.writeText(curlCommand);
     message.success("Curl command copied to clipboard!");
@@ -113,7 +113,7 @@ export const APIKeyOperations = ({
               onChange={(e) => setSelection(e.target.value)}
               value={selection}
             >
-              <Radio.Button value="topN">Top miners</Radio.Button>
+              <Radio.Button value="top_n">Top miners</Radio.Button>
               <Radio.Button value="uids">Specific UIDs</Radio.Button>
               <Radio.Button value="unspecified">Unspecified</Radio.Button>
             </Radio.Group>
@@ -127,7 +127,7 @@ export const APIKeyOperations = ({
               />
             </Form.Item>
           )}
-          {selection === "topN" && (
+          {selection === "top_n" && (
             <Form.Item help="Query top miners based on incentive. Set to 1 to only query the top miner. If set to for example 5, the top 5 miners will be queried with the same prompt in parallel.">
               <InputNumber
                 min={1}
@@ -153,7 +153,7 @@ export const APIKeyOperations = ({
               apiKey,
               url,
               uids: selection === "uids" ? strToArr(uids) : undefined,
-              top_n: selection === "topN" ? top_n : undefined,
+              top_n: selection === "top_n" ? top_n : undefined,
             })}
           </pre>
         </Paragraph>

@@ -1,7 +1,7 @@
 __pycache__
 conda-meta
 .env
-btvep.db
+btvep*.db
 config.json
 config.bak.json
 .DS_Store

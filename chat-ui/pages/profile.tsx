@@ -139,7 +139,7 @@ const Profile = () => {
       <main
         className={`flex h-screen w-screen flex-col text-sm bg-[#202123] text-white dark:text-white p-6`}
       >
-        <div className="container max-w-2xl mx-auto bg-[#343541] text-white p-4 rounded-md">
+        <div className="mx-auto max-w-[1200px] bg-[#343541] text-white p-4 rounded-md">
           {/* Back arrow and profile title */}
           <div className="flex items-center mb-4 text-4xl">
             <button

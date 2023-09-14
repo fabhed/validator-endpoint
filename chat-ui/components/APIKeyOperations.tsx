@@ -1,10 +1,11 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import toast from 'react-hot-toast';
 
 import Button from '@/components/Button';
 
 import { Input } from './Input';
-import { RadioButton } from './RadioButton';
+import { QueryStrategySelect } from './QueryStrategySelect';
+import { Select } from './Select';
 
 const strToArr = (str: string) =>
   str.length
@@ -64,7 +65,7 @@ export const APIKeyOperations = ({
       apiKey,
       url,
       uids: selection === 'uids' ? strToArr(uids) : undefined,
-      top_n: selection === 'topN' ? top_n : undefined,
+      top_n: selection === 'top_n' ? top_n : undefined,
     });
     navigator.clipboard.writeText(curlCommand);
     toast.success('Curl command copied to clipboard!');
@@ -98,83 +99,40 @@ export const APIKeyOperations = ({
               />
             </label>
           </div>
-          {/* select apiKey */}
           <div className="mb-2">
             <label>
               API Key:
-              <select
+              <Select
                 value={apiKey}
                 onChange={(e) => setApiKey(e.target.value)}
-                className="w-full flex-1 rounded-md border border-neutral-600 bg-[#202123] px-4 py-3 pr-10 text-[14px] leading-3 text-white"
+                options={apiKeys}
                 disabled={apiKeys.length === 0}
-              >
-                {apiKeys.map((apiKey) => (
-                  <option key={apiKey.api_key} value={apiKey.api_key}>
-                    {`${apiKey.name} (${apiKey.api_key_hint})`}
-                  </option>
-                ))}
-              </select>
+                getOptionLabel={(apiKey) =>
+                  `${apiKey.name} (${apiKey.api_key_hint})`
+                }
+                getOptionValue={(apiKey) => apiKey.api_key}
+              />
             </label>
             {apiKeys.length === 0 && (
               <div className="text-red-500">No API keys found</div>
             )}
           </div>
-          <fieldset className="flex gap-2">
-            <legend>Query strategy</legend>
-
-            <RadioButton
-              label="Top miners"
-              id="radio-topN"
-              name="query-strategy"
-              value="topN"
-              checked={selection === 'topN'}
-              onChange={(e) => setSelection(e.target.value)}
-            />
-
-            <RadioButton
-              label="Specific UIDs"
-              id="radio-uids"
-              name="query-strategy"
-              value="uids"
-              checked={selection === 'uids'}
-              onChange={(e) => setSelection(e.target.value)}
-            />
-
-            <RadioButton
-              label="Unspecified"
-              id="radio-unspecified"
-              name="query-strategy"
-              value="unspecified"
-              checked={selection === 'unspecified'}
-              onChange={(e) => setSelection(e.target.value)}
-            />
-          </fieldset>
-          {selection === 'uids' && (
-            <Input
-              type="text"
-              placeholder="UIDs (comma-separated)"
-              value={uids}
-              onChange={(e) => setUids(e.target.value)}
-            />
-          )}
-          {selection === 'topN' && (
-            <Input
-              type="number"
-              min="1"
-              placeholder="Top miners"
-              value={top_n}
-              onChange={(e) =>
-                e.target.value && setTopN(Number(e.target.value))
-              }
-            />
-          )}
+          <legend>Query strategy:</legend>
+          <QueryStrategySelect
+            selection={selection}
+            onSelectionChange={setSelection}
+            uids={uids}
+            onUidsChange={setUids}
+            top_n={top_n}
+            onTopNChange={setTopN}
+          />
           <pre className="relative overflow-auto bg-gray-800 text-white p-4 rounded shadow-md font-mono text-sm my-2">
             {generateCurlCommand({
               prompt,
               apiKey,
               url,
               uids: selection === 'uids' ? strToArr(uids) : undefined,
-              top_n: selection === 'topN' ? top_n : undefined,
+              top_n: selection === 'top_n' ? top_n : undefined,
             })}
             <Button onClick={handleCopyCurl} className="absolute right-1 top-1">
               Copy

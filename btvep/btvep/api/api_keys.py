@@ -14,6 +14,7 @@ router = APIRouter()
 
 class ApiKeyRequest(BaseModel):
     name: Optional[str] = "New API Key"
+    default_query_strategy: Optional[str] = None
 
 
 @router.post("/", status_code=201, response_model=ApiKeyInDB)
@@ -56,11 +57,17 @@ def edit_api_key(
     """
     Edit an API key.
     """
+    fields_to_set_to_null = []
+    if request.default_query_strategy is None:
+        fields_to_set_to_null.append("default_query_strategy")
+
     api_keys.update(
         query=query,
         user_id=user.id,
-        # Only allow name to be updated
+        # Only allow name and default_query_strategy to be updated
         name=request.name,
+        default_query_strategy=request.default_query_strategy,
+        fields_to_nullify=fields_to_set_to_null,
     )
     updated_key = api_keys.get(query)
     if updated_key is None:

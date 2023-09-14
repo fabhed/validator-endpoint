@@ -21,6 +21,7 @@ class ApiKeyInDB(BaseModel):
     enabled: bool
     rate_limits: Optional[str] = None
     rate_limits_enabled: bool = None
+    default_query_strategy: Optional[str] = None
     created_at: int
     updated_at: int
 

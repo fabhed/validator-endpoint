@@ -1,4 +1,4 @@
-from ast import List
+from typing import List
 import json
 import secrets
 import time
@@ -37,6 +37,11 @@ class ApiKey(BaseModel):
     enabled = BooleanField(default=True)
     rate_limits = TextField(null=True)
     rate_limits_enabled = BooleanField(default=False)
+    # default_query_strategy: If nothing is specified in the query, this is used
+    # Null - unspecified
+    # "top_n" - Top n miners, e.g. "top_n:5"
+    # "uids:[CSV of uids]" - Specific UIDS, e.g. "uids:1,2,3"
+    default_query_strategy = TextField(null=True)
     created_at = DateTimeField(default=lambda: int(time.time()))
     updated_at = DateTimeField(default=lambda: int(time.time()))
 
@@ -133,6 +138,8 @@ def update(
     enabled: bool = None,
     rate_limits: str = None,
     rate_limits_enabled: bool = None,
+    default_query_strategy: str = None,
+    fields_to_nullify: List[str] = None,
 ):
     # Use a dict to filter out None values
     update_dict = {
@@ -148,8 +155,18 @@ def update(
         if rate_limits
         else None,
         "rate_limits_enabled": rate_limits_enabled,
+        "default_query_strategy": default_query_strategy,
     }
-    update_dict = {k: v for k, v in update_dict.items() if v is not None}
+    # Set fields to None as specified
+    if fields_to_nullify:
+        for field in fields_to_nullify:
+            update_dict[field] = None
+
+    update_dict = {
+        k: v
+        for k, v in update_dict.items()
+        if v is not None or k in (fields_to_nullify or [])
+    }
 
     q = ApiKey.update(update_dict)
     criteria = (ApiKey.id == query) | (ApiKey.api_key == query)

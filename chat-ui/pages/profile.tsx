@@ -192,6 +192,7 @@ const Profile = () => {
                   <th className="px-4 py-1">Created</th>
                   <th className="px-4 py-1">Credits</th>
                   <th className="px-4 py-1">Requests</th>
+                  <th className="px-4 py-1">Default Query Strategy</th>
                   <th />
                 </tr>
               </thead>
@@ -216,6 +217,9 @@ const Profile = () => {
                       </td>
                       <td className="px-4 py-1">{apiKey.credits}</td>
                       <td className="px-4 py-1">{apiKey.request_count}</td>
+                      <td className="px-4 py-1">
+                        {apiKey.default_query_strategy || 'Unspecified'}
+                      </td>
                       <td className="px-4 py-1 flex">
                         <button
                           className="hover:bg-slate-600 p-1 rounded-md"

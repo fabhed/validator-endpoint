@@ -1,4 +1,27 @@
-import { FC, KeyboardEvent, useEffect, useRef, useState } from 'react';
+import { FC, KeyboardEvent, useEffect, useMemo, useRef, useState } from 'react';
+
+import { QueryStrategySelect } from '../QueryStrategySelect';
+
+const parseStrategy = (strategy: string | undefined) => {
+  if (!strategy)
+    return { strategySelection: 'unspecified', uids: '', top_n: 1 };
+
+  const parts = strategy.split(':');
+
+  if (parts[0] === 'top_n') {
+    return {
+      strategySelection: 'top_n',
+      uids: '',
+      top_n: parseInt(parts[1], 10),
+    };
+  }
+
+  if (parts[0] === 'uids') {
+    return { strategySelection: 'uids', uids: parts[1], top_n: 1 };
+  }
+
+  return { strategySelection: 'unspecified', uids: '', top_n: 1 };
+};
 
 interface Props {
   apiKey: any;
@@ -13,8 +36,31 @@ export const ApiKeyModal: FC<Props> = ({ apiKey, onClose, onUpdate, type }) => {
   const modalRef = useRef<HTMLDivElement>(null);
   const nameInputRef = useRef<HTMLInputElement>(null);
 
+  const parsed = parseStrategy(apiKey?.default_query_strategy);
+  console.log('hello', apiKey, parsed);
+
+  const [strategySelection, setStrategySelection] = useState(
+    parsed.strategySelection,
+  );
+  const [uids, setUids] = useState(parsed.uids);
+  const [top_n, setTopN] = useState(parsed.top_n);
+
+  // This will be the computed value to be sent to the database
+  const default_query_strategy = useMemo(() => {
+    if (strategySelection === 'unspecified') {
+      return null;
+    }
+    if (strategySelection === 'top_n') {
+      return `top_n:${top_n}`;
+    }
+    if (strategySelection === 'uids' && uids) {
+      return `uids:${uids}`;
+    }
+    return null;
+  }, [strategySelection, uids, top_n]);
+
   const handleUpdate = async () => {
-    await onUpdate({ ...apiKey, name });
+    await onUpdate({ ...apiKey, name, default_query_strategy });
     onClose();
   };
 
@@ -73,6 +119,18 @@ export const ApiKeyModal: FC<Props> = ({ apiKey, onClose, onUpdate, type }) => {
               placeholder={'A name for your API key' || ''}
               value={name}
               onChange={(e) => setName(e.target.value)}
+            />
+
+            <div className="text-sm font-bold text-black dark:text-neutral-200">
+              Default Query Strategy
+            </div>
+            <QueryStrategySelect
+              selection={strategySelection}
+              onSelectionChange={setStrategySelection}
+              uids={uids}
+              onUidsChange={setUids}
+              top_n={top_n}
+              onTopNChange={setTopN}
             />
 
             <button

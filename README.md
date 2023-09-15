@@ -41,8 +41,7 @@
 
 ### `chat-ui`
 
-- A frontend for end users to query the backend, similar to chat.openai.com
-  Users can on the same page also specify UIDs, and search through UIDs with descriptions/tags. Login system via email & password, Google and Github
+- A frontend for end users to query the backend, similar to chat.openai.com. Users can on the same page also specify UIDs, and search through UIDs with descriptions/tags. Login system via email & password, Google and Github
 - Signup & Login via Github, Google or Username/Password (Requires Auth0 setup)
 
 ## Planned features

@@ -1,4 +1,4 @@
-import { useContext, useEffect } from 'react';
+import { useCallback, useContext, useEffect } from 'react';
 
 import { useTranslation } from 'next-i18next';
 
@@ -11,6 +11,7 @@ import { exportData, importData } from '@/utils/app/importExport';
 
 import { Conversation } from '@/types/chat';
 import { LatestExportFormat, SupportedExportFormats } from '@/types/export';
+import { PluginKey } from '@/types/plugin';
 
 import HomeContext from '@/pages/api/home/home.context';
 
@@ -32,7 +33,7 @@ export const Chatbar = () => {
   });
 
   const {
-    state: { conversations, showChatbar, folders },
+    state: { conversations, showChatbar, folders, pluginKeys },
     dispatch: homeDispatch,
     handleCreateFolder,
     handleNewConversation,
@@ -43,6 +44,54 @@ export const Chatbar = () => {
     state: { searchTerm, filteredConversations },
     dispatch: chatDispatch,
   } = chatBarContextValue;
+
+  const handleApiKeyChange = useCallback(
+    (apiKey: string) => {
+      homeDispatch({ field: 'apiKey', value: apiKey });
+
+      localStorage.setItem('apiKey', apiKey);
+    },
+    [homeDispatch],
+  );
+
+  const handlePluginKeyChange = (pluginKey: PluginKey) => {
+    if (pluginKeys.some((key) => key.pluginId === pluginKey.pluginId)) {
+      const updatedPluginKeys = pluginKeys.map((key) => {
+        if (key.pluginId === pluginKey.pluginId) {
+          return pluginKey;
+        }
+
+        return key;
+      });
+
+      homeDispatch({ field: 'pluginKeys', value: updatedPluginKeys });
+
+      localStorage.setItem('pluginKeys', JSON.stringify(updatedPluginKeys));
+    } else {
+      homeDispatch({ field: 'pluginKeys', value: [...pluginKeys, pluginKey] });
+
+      localStorage.setItem(
+        'pluginKeys',
+        JSON.stringify([...pluginKeys, pluginKey]),
+      );
+    }
+  };
+
+  const handleClearPluginKey = (pluginKey: PluginKey) => {
+    const updatedPluginKeys = pluginKeys.filter(
+      (key) => key.pluginId !== pluginKey.pluginId,
+    );
+
+    if (updatedPluginKeys.length === 0) {
+      homeDispatch({ field: 'pluginKeys', value: [] });
+      localStorage.removeItem('pluginKeys');
+      return;
+    }
+
+    homeDispatch({ field: 'pluginKeys', value: updatedPluginKeys });
+
+    localStorage.setItem('pluginKeys', JSON.stringify(updatedPluginKeys));
+  };
 
   const handleExportData = () => {
     exportData();
@@ -65,13 +114,13 @@ export const Chatbar = () => {
     homeDispatch({
       field: 'selectedConversation',
       value: {
-        id: uuidv4(),
-        name: t('New Conversation'),
-        messages: [],
-        prompt: DEFAULT_SYSTEM_PROMPT,
-        folderId: null,
+      id: uuidv4(),
+      name: t('New Conversation'),
+      messages: [],
+      prompt: DEFAULT_SYSTEM_PROMPT,
+      folderId: null,
       },
-    });
+      });
 
     homeDispatch({ field: 'conversations', value: [] });
 
@@ -104,14 +153,13 @@ export const Chatbar = () => {
       homeDispatch({
         field: 'selectedConversation',
         value: {
-          id: uuidv4(),
-          name: t('New Conversation'),
-          messages: [],
-          prompt: DEFAULT_SYSTEM_PROMPT,
-          folderId: null,
+        id: uuidv4(),
+        name: t('New Conversation'),
+        messages: [],
+        prompt: DEFAULT_SYSTEM_PROMPT,
+        folderId: null,
         },
-      });
-
+        });
       localStorage.removeItem('selectedConversation');
     }
   };
@@ -128,6 +176,10 @@ export const Chatbar = () => {
       chatDispatch({ field: 'searchTerm', value: '' });
       e.target.style.background = 'none';
     }
+  };
+
+  const handlePluginsChange = (plugins: string[]) => {
+    homeDispatch({ field: 'selectedPlugins', value: plugins });
   };
 
   useEffect(() => {
@@ -158,6 +210,10 @@ export const Chatbar = () => {
         handleClearConversations,
         handleImportConversations,
         handleExportData,
+        handlePluginKeyChange,
+        handleClearPluginKey,
+        handleApiKeyChange,
+        handlePluginsChange,
       }}
     >
       <Sidebar<Conversation>

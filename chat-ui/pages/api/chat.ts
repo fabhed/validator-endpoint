@@ -4,6 +4,7 @@ import {
 } from '@/utils/app/const';
 
 import { ChatBody, Message } from '@/types/chat';
+import { choose_plugin } from './plugin';
 
 export const config = {
   runtime: 'edge',
@@ -20,7 +21,34 @@ export class ValidatorEndpointError extends Error {
 
 const handler = async (req: Request): Promise<Response> => {
   try {
-    const { messages, key, prompt, uid } = (await req.json()) as ChatBody;
+    const { messages, key, prompt, uid, plugins } = (await req.json()) as ChatBody;
+    const url = NEXT_PUBLIC_VALIDATOR_ENDPOINT_BASE_URL + '/conversation';
+    const res_uids = await fetch(`https://test.neuralinternet.ai/top_miner_uids?n=20`, {
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${key}`,
+      },
+      method: 'GET',
+    });
+    const top_miner_uids = await res_uids.json();
+
+    console.log("plugins", plugins);
+    const plugin_assistant = await choose_plugin(
+      messages[messages.length - 1].content,
+      plugins,
+      key,
+      url,
+      top_miner_uids
+    );
+
+    if (plugin_assistant) {
+      const lastMessage = messages.pop();
+      messages.push({
+        role: 'assistant',
+        content: plugin_assistant,
+      });
+      if (lastMessage) messages.push(lastMessage);
+    }
 
     let messagesToSend: Message[] = [];
 
@@ -29,16 +57,16 @@ const handler = async (req: Request): Promise<Response> => {
       messagesToSend = [message, ...messagesToSend];
     }
 
-    const url = NEXT_PUBLIC_VALIDATOR_ENDPOINT_BASE_URL + '/conversation';
-    const strategy: {
-      uids?: number[];
-      top_n?: number;
-    } = {};
-    if (uid !== undefined) {
-      strategy.uids = [uid];
-    } else {
-      strategy.top_n = 1;
-    }
+    // const strategy: {
+    //   uids?: number[];
+    //   top_n?: number;
+    // } = {};
+    // if (uid !== undefined) {
+    //   strategy.uids = [uid];
+    // } else {
+    //   strategy.top_n = 1;
+    // }
+    const strategy = {uids: [top_miner_uids[0]]};
     const body = {
       messages: [
         {
@@ -49,6 +77,7 @@ const handler = async (req: Request): Promise<Response> => {
       ],
       ...strategy,
     };
+
     const res = await fetch(url, {
       headers: {
         'Content-Type': 'application/json',

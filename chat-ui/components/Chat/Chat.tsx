@@ -12,6 +12,7 @@ import toast from 'react-hot-toast';
 
 import { useTranslation } from 'next-i18next';
 
+import { getEndpoint } from '@/utils/app/api';
 import { title } from '@/utils/app/const';
 import {
   saveConversation,
@@ -38,7 +39,19 @@ export const Chat = memo(() => {
   const { t } = useTranslation('chat');
 
   const {
-    state: { selectedConversation, conversations, loading },
+    state: {
+      selectedConversation,
+      conversations,
+      apiKey,
+      pluginKeys,
+      serverSideApiKeyIsSet,
+      messageIsStreaming,
+      modelError,
+      loading,
+      prompts,
+      api,
+      selectedPlugins,
+    },
     handleUpdateConversation,
     dispatch: homeDispatch,
   } = useContext(HomeContext);
@@ -96,8 +109,26 @@ export const Chat = memo(() => {
           key: access_token,
           prompt: updatedConversation.prompt,
           uid,
+          plugins: selectedPlugins,
+          api,
         };
         console.log('Messages in request', chatBody.messages);
+
+        const endpoint = getEndpoint(plugin);
+        let body;
+        if (!plugin) {
+          body = JSON.stringify(chatBody);
+        } else {
+          body = JSON.stringify({
+            ...chatBody,
+            googleAPIKey: pluginKeys
+              .find((key) => key.pluginId === 'google-search')
+              ?.requiredKeys.find((key) => key.key === 'GOOGLE_API_KEY')?.value,
+            googleCSEId: pluginKeys
+              .find((key) => key.pluginId === 'google-search')
+              ?.requiredKeys.find((key) => key.key === 'GOOGLE_CSE_ID')?.value,
+          });
+        }
 
         const controller = new AbortController();
         abortControllerRef.current = controller;
@@ -110,7 +141,7 @@ export const Chat = memo(() => {
             },
             signal: controller.signal,
 
-            body: JSON.stringify(chatBody),
+            body,
           });
 
           if (!response.ok) {
@@ -172,7 +203,14 @@ export const Chat = memo(() => {
         }
       }
     },
-    [selectedConversation, homeDispatch, getAccessTokenSilently, conversations],
+    [
+      apiKey,
+      conversations,
+      pluginKeys,
+      selectedConversation,
+      api,
+      selectedPlugins,
+    ],
   );
 
   const scrollToBottom = useCallback(() => {

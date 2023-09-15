@@ -22,6 +22,7 @@ import { Import } from '../../Settings/Import';
 import { SidebarButton } from '../../Sidebar/SidebarButton';
 import ChatbarContext from '../Chatbar.context';
 import { ClearConversations } from './ClearConversations';
+import { Plugins } from './Plugins';
 
 export const ChatbarSettings = () => {
   const router = useRouter();
@@ -84,6 +85,9 @@ export const ChatbarSettings = () => {
         icon={<IconSettings size={18} />}
         onClick={() => setIsSettingDialog(true)}
       />
+
+      <Plugins />
+
       <SettingDialog
         open={isSettingDialogOpen}
         onClose={() => {

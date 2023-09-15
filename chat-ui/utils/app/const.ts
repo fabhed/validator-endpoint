@@ -2,7 +2,7 @@ export const title = 'Bittensor Chat';
 
 export const DEFAULT_SYSTEM_PROMPT =
   process.env.NEXT_PUBLIC_DEFAULT_SYSTEM_PROMPT ||
-  "You are Bittensor Chat, an AI assistant. Follow the user's instructions carefully.";
+  "*Start new session** You are an AI assistant. Follow the user's instructions carefully. Respond using markdown.";
 
 export const NEXT_PUBLIC_VALIDATOR_ENDPOINT_BASE_URL =
   process.env.NEXT_PUBLIC_VALIDATOR_ENDPOINT_BASE_URL ||

@@ -51,6 +51,7 @@ export const Chat = memo(() => {
       prompts,
       api,
       selectedPlugins,
+      publicPDFLink
     },
     handleUpdateConversation,
     dispatch: homeDispatch,
@@ -118,6 +119,15 @@ export const Chat = memo(() => {
         let body;
         if (!plugin) {
           body = JSON.stringify(chatBody);
+          if (selectedPlugins.includes("chatpdf")) {
+            body = JSON.stringify({
+              ...chatBody,
+              others: {
+                publicPDFLink
+              }
+            });
+          }
+          else body = JSON.stringify(chatBody);
         } else {
           body = JSON.stringify({
             ...chatBody,

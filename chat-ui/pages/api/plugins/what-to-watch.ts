@@ -7,9 +7,7 @@ export const runPlugin = async ({
       const response_data: any = await fetch(
         `https://whattowatch.dev/shows/details/${encodeURIComponent(show_name)}`,
       ).then((res) => res.json());
-  
-      console.log('response_data', response_data);
-  
+   
       if (response_data?.result) {
         const {
           name,

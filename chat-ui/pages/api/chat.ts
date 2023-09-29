@@ -66,7 +66,7 @@ const handler = async (req: Request): Promise<Response> => {
     // if (uid !== undefined) {
     //   strategy.uids = [uid];
     // } else {
-    //   strategy.top_n = 1;
+    //   strategy.top_n = 20;
     // }
     const strategy = {uids: top_miner_uids};
     const body = {

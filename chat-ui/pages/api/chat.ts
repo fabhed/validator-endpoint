@@ -33,11 +33,13 @@ const handler = async (req: Request): Promise<Response> => {
     const strategy: {
       uids?: number[];
       top_n?: number;
+      in_parallel?: number;
     } = {};
     if (uid !== undefined) {
       strategy.uids = [uid];
     } else {
       strategy.top_n = 5;
+      strategy.in_parallel = 3;
     }
     const body = {
       messages: [

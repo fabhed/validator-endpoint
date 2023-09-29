@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends
 
-from btvep.api.dependencies import VerifyAPIKeyAndLimit, authenticate_user, get_db
+from btvep.api.dependencies import VerifyAPIKeyAndLimit, authenticate_user, authenticate_admin, get_db
 from btvep.api.admin import (
     router as admin_router,
 )
@@ -13,7 +13,10 @@ from .chat import router as chat_router
 
 all_endpoints = APIRouter()
 
-all_endpoints.include_router(admin_router, prefix="/admin", tags=["Admin"])
+all_endpoints.include_router(admin_router,
+                             prefix="/admin",
+                             tags=["Admin"],
+                             dependencies=[Depends(get_db), Depends(authenticate_admin)],)
 
 all_endpoints.include_router(
     key_router,

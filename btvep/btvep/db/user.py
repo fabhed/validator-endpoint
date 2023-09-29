@@ -11,11 +11,13 @@ class User(BaseModel):
     id = TextField(primary_key=True)
     # Number of requests to the bittensor network
     request_count = IntegerField(default=0)
+    is_admin = IntegerField(default=0)
     # Number of requests to the validator-endpoint api (one api request can make multiple bittensor requests)
     api_request_count = IntegerField(default=0)
     enabled = BooleanField(default=True)
     created_at = DateTimeField(default=lambda: int(time.time()))
     updated_at = DateTimeField(default=lambda: int(time.time()))
+
 
     def __str__(self):
         return json.dumps(self.__dict__["__data__"], indent=4, default=str)

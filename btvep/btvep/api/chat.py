@@ -55,8 +55,8 @@ async def chat(
             description="Query top miners based on incentive in the network. If set to for example 5, the top 5 miners will be sent the request. This parameter takes precedence over the uids parameter."
         ),
     ] = None,
-    in_parallel: Annotated[int | None,Body()] = None,
-    attempts: Annotated[int | None,Body()] = None,
+    in_parallel: Annotated[int | None, Body()] = None,
+    attempts: Annotated[int | None, Body()] = None,
     messages: Annotated[List[Message] | None, Body()] = None,
     api_key: ApiKey = Depends(authenticate_api_key),
 ) -> ChatResponse:
@@ -64,7 +64,9 @@ async def chat(
     uids, top_n = apply_default_query_strategy(
         uids, top_n, api_key.default_query_strategy
     )
-    prompter_responses = await query_network(messages, uids, top_n,in_parallel,attempts)
+    prompter_responses = await query_network(
+        messages, uids, top_n, in_parallel, attempts
+    )
     choices, failed_responses, all_failed = process_responses(
         prompter_responses, messages, authorization
     )

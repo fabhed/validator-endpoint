@@ -34,8 +34,7 @@ function App({ Component, pageProps }: AppProps<{}>) {
           audience: process.env.NEXT_PUBLIC_AUTH0_AUDIENCE,
           scope: 'openid profile email',
         }}
-        cacheLocation='localstorage'
-
+        cacheLocation="localstorage"
       >
         <QueryClientProvider client={queryClient}>
           <Component {...pageProps} />

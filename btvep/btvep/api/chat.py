@@ -56,7 +56,7 @@ async def chat(
         ),
     ] = None,
     in_parallel: Annotated[int | None, Body()] = None,
-    attempts: Annotated[int | None, Body()] = None,
+    respond_on_first_success: Annotated[bool | None, Body()] = True,
     messages: Annotated[List[Message] | None, Body()] = None,
     api_key: ApiKey = Depends(authenticate_api_key),
 ) -> ChatResponse:
@@ -65,7 +65,7 @@ async def chat(
         uids, top_n, api_key.default_query_strategy
     )
     prompter_responses = await query_network(
-        messages, uids, top_n, in_parallel, attempts
+        messages, uids, top_n, in_parallel, respond_on_first_success
     )
     choices, failed_responses, all_failed = process_responses(
         prompter_responses, messages, authorization

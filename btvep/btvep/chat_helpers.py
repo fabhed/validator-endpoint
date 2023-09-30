@@ -28,7 +28,7 @@ async def query_network(
     uids: List[int],
     top_n: int,
     in_parallel: int,
-    attempts: int,
+    respond_on_first_success: bool,
 ) -> dict:
     try:
         return await ValidatorPrompter().query_network(
@@ -36,7 +36,7 @@ async def query_network(
             uids=uids,
             top_n=top_n,
             in_parallel=in_parallel,
-            attempts=attempts,
+            respond_on_first_success=respond_on_first_success,
         )
     except MetagraphNotSyncedException as e:
         raise HTTPException(

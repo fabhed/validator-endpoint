@@ -1,4 +1,5 @@
 import asyncio
+import logging
 from typing import List, Optional
 
 from bittensor import Keypair, metagraph, text_prompting, Keypair
@@ -48,71 +49,91 @@ class ValidatorPrompter:
     def __init__(self, *args, **kwargs):
         pass
 
+    async def query_network(
+        self,
+        messages: List[Message],
+        uids: Optional[List[int]] = None,
+        top_n: Optional[int] = None,
+        in_parallel: Optional[int] = None,
+        timeout: Optional[int] = None,
+        respond_on_first_success: bool = True,
+    ):
+        if in_parallel is not None and in_parallel < 1:
+            raise ValueError("in_parallel must be at least 1")
+
+        self._validate_metagraph()
+        roles, messages = self._prepare_messages(messages)
+
+        if top_n is not None:
+            uids = self._get_top_uids(top_n)
+        elif uids is None:
+            raise ValueError("Either uids or top_n must be specified")
+
+        in_parallel = in_parallel or len(
+            uids
+        )  # Default to processing all uids in parallel
+        return await self._process_in_parallel(
+            uids, roles, messages, in_parallel, timeout, respond_on_first_success
+        )
+
     def _get_dendrite(self, uid):
         if self.metagraph_syncer.metagraph is None:
             raise MetagraphNotSyncedException()
         axon = self.metagraph_syncer.metagraph.axons[uid]
         return text_prompting(keypair=self.hotkey, axon=axon)
 
-    async def query_network(
-        self,
-        messages: List[Message],
-        uids: List[int],
-        top_n: Optional[int] = None,
-        in_parallel: Optional[int] = None,
-        attempts: Optional[int] = None,
-    ):
+    def _validate_metagraph(self):
         if self.metagraph_syncer.metagraph is None:
             raise MetagraphNotSyncedException()
 
+    def _prepare_messages(self, messages: List[Message]):
         roles = [el.role for el in messages]
         messages = [el.content for el in messages]
-        if in_parallel is not None:
-            results = []
-            count_attempts = 0
-            max_attempts = 5  # attempts default value
-            if attempts is not None:
-                max_attempts = attempts
-            _, indices = self.metagraph_syncer.metagraph.incentive.sort(descending=True)
-            uids = indices[: (max_attempts * in_parallel)].tolist()
-            stop = False
-            while stop == False and count_attempts != max_attempts:
-                tasks = []
-                for uid in uids[count_attempts : count_attempts + in_parallel]:
-                    dendrite = self._get_dendrite(uid)
-                    task = asyncio.create_task(
-                        self._query_uid(dendrite, roles, messages, uid)
-                    )
-                    tasks.append(task)
-                    for completed_task in asyncio.as_completed(tasks, timeout=10):
-                        response = await completed_task
-                        results.append(response)
-                        dendrite_response = response["dendrite_response"]
-                        if dendrite_response.is_success:
-                            stop == True
-                            tasks.clear()
-                            return results
-                count_attempts += 1
-            return results
-        else:
-            if top_n is not None:
-                _, indices = self.metagraph_syncer.metagraph.incentive.sort(
-                    descending=True
-                )
-                uids = indices[:top_n].tolist()
+        return roles, messages
 
-            tasks = []
-            for uid in uids:
-                dendrite = self._get_dendrite(uid)
-                task = asyncio.create_task(
-                    self._query_uid(dendrite, roles, messages, uid)
-                )
-                tasks.append(task)
+    def _get_top_uids(self, top_n: int):
+        _, indices = self.metagraph_syncer.metagraph.incentive.sort(descending=True)
+        return indices[:top_n].tolist()
 
-            # execute all requests in parallel
-            results = await asyncio.gather(*tasks)
-            return results
+    async def _process_in_parallel(
+        self, uids, roles, messages, in_parallel, timeout, respond_on_first_success
+    ):
+        results = []
+        uid_idx = 0
 
-    async def _query_uid(self, dendrite, roles, messages, uid):
-        result = await dendrite.async_forward(roles=roles, messages=messages)
-        return {"uid": uid, "dendrite_response": result}
+        while uid_idx < len(uids):
+            tasks = self._create_tasks(
+                uids, roles, messages, uid_idx, in_parallel, timeout
+            )
+            uid_idx += len(tasks)
+
+            for future in asyncio.as_completed(tasks):
+                result = await future
+                results.append(result)
+                if respond_on_first_success and result["dendrite_response"].is_success:
+                    for task in tasks:
+                        task.cancel()  # Cancel all other tasks
+                    return results  # Return the successful result
+        return results
+
+    def _create_tasks(self, uids, roles, messages, uid_idx, in_parallel, timeout):
+        tasks = []
+        for _ in range(min(in_parallel, len(uids) - uid_idx)):
+            uid = uids[uid_idx]
+            uid_idx += 1
+            dendrite = self._get_dendrite(uid)
+            task = asyncio.create_task(
+                self._query_uid(dendrite, roles, messages, uid, timeout)
+            )
+            tasks.append(task)
+        return tasks
+
+    async def _query_uid(self, dendrite, roles, messages, uid, timeout=None):
+        # Avoid overwriting the default timeout of bittensor if timeout is None
+        logging.info(f"Querying uid {uid}")
+        timeout_arg = {"timeout": timeout} if timeout is not None else {}
+        result = await dendrite.async_forward(
+            roles=roles, messages=messages, **timeout_arg
+        )
+        response = {"uid": uid, "dendrite_response": result}
+        return response

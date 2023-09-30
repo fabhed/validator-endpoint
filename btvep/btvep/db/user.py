@@ -18,16 +18,15 @@ class User(BaseModel):
     created_at = DateTimeField(default=lambda: int(time.time()))
     updated_at = DateTimeField(default=lambda: int(time.time()))
 
-
     def __str__(self):
         return json.dumps(self.__dict__["__data__"], indent=4, default=str)
 
     @staticmethod
     def tabulate(users):
-        """Print a list of API keys in a table."""
+        """Print a list of Users in a table."""
         return tabulate(
             users,
-            headers="users",
+            headers="keys",
         )
 
 

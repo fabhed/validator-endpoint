@@ -5,15 +5,17 @@ from btvep.db.user import User
 
 app = typer.Typer(help="Manage users.")
 
+
 @app.callback(no_args_is_help=True)
 def main():
     pass
 
+
 @app.command("list")
 def list_users():
-    all_users = User.select()
-    for user in all_users:
-        print(f"id: {user.id} /admin: {user.is_admin}")
+    table = User.tabulate([user for user in User.select().dicts()])
+    print(table)
+
 
 @app.command("edit")
 def edit_user(

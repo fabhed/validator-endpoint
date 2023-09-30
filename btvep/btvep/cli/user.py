@@ -1,5 +1,4 @@
 import typer
-from tabulate import tabulate
 
 from btvep.db.user import User
 

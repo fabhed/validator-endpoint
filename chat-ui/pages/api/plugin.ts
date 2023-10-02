@@ -92,6 +92,7 @@ const isWebDevPluginWithMatcParam = (plugin: any, resp_json: any) => {
 
 function validate_response(resp_text: string) {
   try {
+    if(resp_text == "" || !resp_text) return false;
     const resp_json = JSON.parse(resp_text);
 
     if (resp_json.plugin && resp_json.parameters) {

@@ -49,26 +49,16 @@ export const Plugins = () => {
     }
   };
 
-  const [file, setFile] = useState<String>();
-
-  const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault()
-    if (!file) return
-
-    console.log(file);
-    const config = {
-      headers: {
-        "x-api-key": `${process.env.NEXT_PUBLIC_CHATPDF_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-    };
-
-    const data = {
-      url: file,
-    };
-
-    await axios
-      .post("https://api.chatpdf.com/v1/sources/add-url", data, config)
+  const onSubmit = async (e: any) => {
+    const formData = new FormData();
+    formData.append("file", e.target.files[0]);
+    
+    axios
+      .post("https://api.chatpdf.com/v1/sources/add-file", formData, {
+        headers: {
+          "x-api-key": `${process.env.NEXT_PUBLIC_CHATPDF_API_KEY}`,
+        },
+      })
       .then((response) => {
         console.log("Source ID:", response.data.sourceId);
         homeDispatch({ field: 'publicPDFLink', value: response.data.sourceId});
@@ -166,14 +156,12 @@ export const Plugins = () => {
                             }}
                             />
                             {
-                              plugin.id === "chatpdf" && <form onSubmit={onSubmit} className='text-sm'>
+                              plugin.id === "chatpdf" && 
                                 <input
-                                  className="rounded-lg border border-neutral-500 px-3 py-1 mr-3 text-neutral-900 shadow focus:outline-none dark:border-neutral-100 dark:border-opacity-50 dark:bg-[#40414F] dark:text-neutral-100"
-                                  onChange={(e) => setFile(e.target.value)}
-                                  placeholder='Public PDF URL'
+                                  className="text-sm w-full px-3 py-1 mr-3 text-neutral-900 shadow focus:outline-none dark:border-neutral-100 dark:border-opacity-50 dark:text-neutral-100"
+                                  type='file'
+                                  onChange={(e) => onSubmit(e)}
                                 />
-                              <input type="submit" value="Submit" className='cursor-pointer'/>
-                            </form>
                             }
                         </div>
                         <div className="mt-2 italic">

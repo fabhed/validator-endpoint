@@ -38,7 +38,7 @@ const handler = async (req: Request): Promise<Response> => {
     if (uid !== undefined) {
       strategy.uids = [uid];
     } else {
-      strategy.top_n = 5;
+      strategy.top_n = 50;
       strategy.in_parallel = 3;
     }
     const body = {

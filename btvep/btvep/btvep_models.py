@@ -20,7 +20,7 @@ class ChatResponseChoice(BaseModel):
     uid: int
     responder_hotkey: Optional[str]
     message: Message
-    response_ms: int
+    response_ms: Optional[int]
 
 
 class FailedMinerResponse(BaseModel):
@@ -29,8 +29,8 @@ class FailedMinerResponse(BaseModel):
     index: int
     uid: int
     responder_hotkey: Optional[str]
-    error: str
-    response_ms: int
+    error: Optional[str]
+    response_ms: Optional[int]
 
 
 class ChatResponse(BaseModel):

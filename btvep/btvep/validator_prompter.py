@@ -248,12 +248,12 @@ class ValidatorPrompter:
             uid = uids[uid_idx]
             uid_idx += 1
             task = asyncio.create_task(
-                self._query_uid(None, roles, messages, uid, timeout)
+                self._query_uid(roles, messages, uid, timeout)
             )
             tasks.append(task)
         return tasks
 
-    async def _query_uid(self, dendrite, roles, messages, uid, timeout=None):
+    async def _query_uid(self, roles, messages, uid, timeout=None):
         # Avoid overwriting the default timeout of bittensor if timeout is None
         logging.info(f"Querying uid {uid}")
         timeout_arg = {"timeout": timeout} if timeout is not None else {}

@@ -11,7 +11,6 @@ from btvep.btvep_models import (
 )
 
 from btvep.validator_prompter import MetagraphNotSyncedException, ValidatorPrompter
-# from bittensor.utils.codes import code_to_string
 import uuid
 from btvep.db.request import Request
 
@@ -57,13 +56,6 @@ def process_responses(
         dendrite_res = p_response["dendrite_response"]
         uid = p_response["uid"]
 
-        # return_code = (
-        #     dendrite_res.return_code.value
-        #     if isinstance(type(dendrite_res.return_code), type(Enum))
-        #     else dendrite_res.return_code
-        # )
-        # return_code_str = code_to_string(return_code)
-
         Request.create(
             is_api_success=True,
             api_request_id=str(uuid.uuid4()),
@@ -72,16 +64,16 @@ def process_responses(
                 1
             ],  # Assuming API key is also passed in the same format.
             response=dendrite_res.completion,
-            responder_hotkey='',#dendrite_res.dest_hotkey,
+            responder_hotkey=dendrite_res.dest_hotkey,
             is_success=dendrite_res.is_completion,
-            return_message='',#dendrite_res.return_message,
-            elapsed_time='',#dendrite_res.elapsed,
-            src_version='',#dendrite_res.src_version,
-            dest_version='',#dendrite_res.dest_version,
-            return_code=''#return_code_str,
+            return_message=dendrite_res.return_message,
+            elapsed_time=dendrite_res.elapsed,
+            src_version=dendrite_res.src_version,
+            dest_version=dendrite_res.dest_version,
+            return_code=dendrite_res.return_message,
         )
 
-        response_ms = 0 #int(dendrite_res.elapsed * 1000)
+        response_ms = int(dendrite_res.elapsed * 1000)
 
         if dendrite_res.is_completion:
             choices.append(
@@ -92,8 +84,8 @@ def process_responses(
                         "content": dendrite_res.completion,
                     },
                     "uid": uid,
-                    # "responder_hotkey": dendrite_res.dest_hotkey,
-                    # "response_ms": response_ms,
+                    "responder_hotkey": dendrite_res.dest_hotkey,
+                    "response_ms": response_ms,
                 }
             )
             success_index += 1
@@ -101,10 +93,10 @@ def process_responses(
             failed_responses.append(
                 {
                     "index": failed_index,
-                    "error": '', #dendrite_res.return_message,
+                    "error": dendrite_res.return_message,
                     "uid": uid,
-                    # "responder_hotkey": dendrite_res.dest_hotkey,
-                    # "response_ms": response_ms,
+                    "responder_hotkey": dendrite_res.dest_hotkey,
+                    "response_ms": response_ms,
                 }
             )
             failed_index += 1

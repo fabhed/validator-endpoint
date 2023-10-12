@@ -8,7 +8,7 @@ from bittensor import Keypair, metagraph,  Keypair #prompting,text_prompting
 from btvep.btvep_models import Message
 from btvep.constants import DEFAULT_NETUID
 from btvep.metagraph import MetagraphSyncer
-
+from btvep.prompting import Prompting
 # The MIT License (MIT)
 # Copyright © 2023 Yuma Rao
 # Copyright © 2023 Opentensor Foundation
@@ -27,117 +27,7 @@ from btvep.metagraph import MetagraphSyncer
 # OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 # DEALINGS IN THE SOFTWARE.
 
-import pydantic
-import time
-import torch
-from typing import List
-import bittensor as bt
-from starlette.responses import StreamingResponse
 
-
-class Prompting(bt.Synapse):
-    """
-    The Prompting subclass of the Synapse class encapsulates the functionalities related to prompting scenarios.
-
-    It specifies three fields - `roles`, `messages` and `completion` - that define the state of the Prompting object.
-    The `roles` and `messages` are read-only fields defined during object initialization, and `completion` is a mutable
-    field that can be updated as the prompting scenario progresses.
-
-    The Config inner class specifies that assignment validation should occur on this class (validate_assignment = True),
-    meaning value assignments to the instance fields are checked against their defined types for correctness.
-
-    Attributes:
-        roles (List[str]): A list of roles in the prompting scenario. This field is both mandatory and immutable.
-        messages (List[str]): A list of messages in the prompting scenario. This field is both mandatory and immutable.
-        completion (str): A string that captures completion of the prompt. This field is mutable.
-        required_hash_fields List[str]: A list of fields that are required for the hash.
-
-    Methods:
-        deserialize() -> "Prompting": Returns the instance of the current object.
-
-
-    The `Prompting` class also overrides the `deserialize` method, returning the
-    instance itself when this method is invoked. Additionally, it provides a `Config`
-    inner class that enforces the validation of assignments (`validate_assignment = True`).
-
-    Here is an example of how the `Prompting` class can be used:
-
-    ```python
-    # Create a Prompting instance
-    prompt = Prompting(roles=["system", "user"], messages=["Hello", "Hi"])
-
-    # Print the roles and messages
-    print("Roles:", prompt.roles)
-    print("Messages:", prompt.messages)
-
-    # Update the completion
-    model_prompt =... # Use prompt.roles and prompt.messages to generate a prompt
-    for your LLM as a single string.
-    prompt.completion = model(model_prompt)
-
-    # Print the completion
-    print("Completion:", prompt.completion)
-    ```
-
-    This will output:
-    ```
-    Roles: ['system', 'user']
-    Messages: ['You are a helpful assistant.', 'Hi, what is the meaning of life?']
-    Completion: "The meaning of life is 42. Deal with it, human."
-    ```
-
-    This example demonstrates how to create an instance of the `Prompting` class, access the
-    `roles` and `messages` fields, and update the `completion` field.
-    """
-
-    class Config:
-        """
-        Pydantic model configuration class for Prompting. This class sets validation of attribute assignment as True.
-        validate_assignment set to True means the pydantic model will validate attribute assignments on the class.
-        """
-
-        validate_assignment = True
-
-    def deserialize(self) -> "Prompting":
-        """
-        Returns the instance of the current Prompting object.
-
-        This method is intended to be potentially overridden by subclasses for custom deserialization logic.
-        In the context of the Prompting class, it simply returns the instance itself. However, for subclasses
-        inheriting from this class, it might give a custom implementation for deserialization if need be.
-
-        Returns:
-            Prompting: The current instance of the Prompting class.
-        """
-        return self
-
-    roles: List[str] = pydantic.Field(
-        ...,
-        title="Roles",
-        description="A list of roles in the Prompting scenario. Immuatable.",
-        allow_mutation=False,
-    )
-
-    messages: List[str] = pydantic.Field(
-        ...,
-        title="Messages",
-        description="A list of messages in the Prompting scenario. Immutable.",
-        allow_mutation=False,
-    )
-
-    completion: str = pydantic.Field(
-        "",
-        title="Completion",
-        description="Completion status of the current Prompting object. This attribute is mutable and can be updated.",
-    )
-
-    required_hash_fields: List[str] = pydantic.Field(
-        ["messages"],
-        title="Required Hash Fields",
-        description="A list of required fields for the hash.",
-        allow_mutation=False,
-    )
-    is_completion: bool = False
 
 
 class MetagraphNotSyncedException(Exception):
@@ -234,6 +124,7 @@ class ValidatorPrompter:
             uid_idx += len(tasks)
 
             for future in asyncio.as_completed(tasks):
+
                 result = await future
                 results.append(result)
                 if respond_on_first_success and result["dendrite_response"].is_completion:
@@ -255,20 +146,33 @@ class ValidatorPrompter:
 
     async def _query_uid(self, roles, messages, uid, timeout=None):
         # Avoid overwriting the default timeout of bittensor if timeout is None
+
         logging.info(f"Querying uid {uid}")
         timeout_arg = {"timeout": timeout} if timeout is not None else {}
-        axons = [self.metagraph_syncer.metagraph.axons[uid]]
+        axon = self.metagraph_syncer.metagraph.axons[uid]
 
         synapse = Prompting(roles=roles, messages=messages)
 
         result = self.dendrite.query(
-            axons,
+            [axon],
             synapse,
             deserialize=False
         )
         result = result[0]
+        if result.dendrite.process_time:
+            result.elapsed=result.dendrite.process_time
+        else:
+            result.elapsed=result.timeout
+        result.dest_hotkey=axon.hotkey
+        result.return_code = result.dendrite.status_code
+        result.return_message = result.dendrite.status_message
         if result.completion:
             result.is_completion=True
+        else:
+            #Case empty dentrite response
+            if result.dendrite.status_code==200:
+                 result.return_message = 'Empty response'
+
         response = {"uid": uid, "dendrite_response": result}
 
         return response

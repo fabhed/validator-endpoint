@@ -2,6 +2,7 @@ import bittensor as bt
 import pydantic
 from typing import List
 
+
 class Prompting(bt.Synapse):
     """
     The Prompting subclass of the Synapse class encapsulates the functionalities related to prompting scenarios.
@@ -105,8 +106,8 @@ class Prompting(bt.Synapse):
         allow_mutation=False,
     )
     is_completion: bool = False
-    dest_hotkey: str = ''
-    return_message: str = ''
+    dest_hotkey: str = ""
+    return_message: str = ""
     elapsed: float = None
     src_version: int = bt.__version_as_int__
     dest_version: int = None

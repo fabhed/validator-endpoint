@@ -3,12 +3,13 @@ import logging
 from typing import List, Optional
 
 import bittensor as bt
-from bittensor import Keypair, metagraph,  Keypair #prompting,text_prompting
+from bittensor import Keypair, metagraph, Keypair  # prompting,text_prompting
 
 from btvep.btvep_models import Message
 from btvep.constants import DEFAULT_NETUID
 from btvep.metagraph import MetagraphSyncer
 from btvep.prompting import Prompting
+
 # The MIT License (MIT)
 # Copyright © 2023 Yuma Rao
 # Copyright © 2023 Opentensor Foundation
@@ -26,8 +27,6 @@ from btvep.prompting import Prompting
 # THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
 # OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 # DEALINGS IN THE SOFTWARE.
-
-
 
 
 class MetagraphNotSyncedException(Exception):
@@ -124,10 +123,12 @@ class ValidatorPrompter:
             uid_idx += len(tasks)
 
             for future in asyncio.as_completed(tasks):
-
                 result = await future
                 results.append(result)
-                if respond_on_first_success and result["dendrite_response"].is_completion:
+                if (
+                    respond_on_first_success
+                    and result["dendrite_response"].is_completion
+                ):
                     for task in tasks:
                         task.cancel()  # Cancel all other tasks
                     return results  # Return the successful result
@@ -138,9 +139,7 @@ class ValidatorPrompter:
         for _ in range(min(in_parallel, len(uids) - uid_idx)):
             uid = uids[uid_idx]
             uid_idx += 1
-            task = asyncio.create_task(
-                self._query_uid(roles, messages, uid, timeout)
-            )
+            task = asyncio.create_task(self._query_uid(roles, messages, uid, timeout))
             tasks.append(task)
         return tasks
 
@@ -153,25 +152,21 @@ class ValidatorPrompter:
 
         synapse = Prompting(roles=roles, messages=messages)
 
-        result = self.dendrite.query(
-            [axon],
-            synapse,
-            deserialize=False
-        )
+        result = self.dendrite.query([axon], synapse, deserialize=False)
         result = result[0]
         if result.dendrite.process_time:
-            result.elapsed=result.dendrite.process_time
+            result.elapsed = result.dendrite.process_time
         else:
-            result.elapsed=result.timeout
-        result.dest_hotkey=axon.hotkey
+            result.elapsed = result.timeout
+        result.dest_hotkey = axon.hotkey
         result.return_code = result.dendrite.status_code
         result.return_message = result.dendrite.status_message
         if result.completion:
-            result.is_completion=True
+            result.is_completion = True
         else:
-            #Case empty dentrite response
-            if result.dendrite.status_code==200:
-                 result.return_message = 'Empty response'
+            # Case empty dentrite response
+            if result.dendrite.status_code == 200:
+                result.return_message = "Empty response"
 
         response = {"uid": uid, "dendrite_response": result}
 

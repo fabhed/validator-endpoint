@@ -162,6 +162,7 @@ class ValidatorPrompter:
         result.return_code = result.dendrite.status_code
         result.return_message = result.dendrite.status_message
         if result.completion:
+            print('**COMPLETION',result.completion)
             result.is_completion = True
         else:
             # Case empty dentrite response

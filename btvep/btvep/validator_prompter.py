@@ -121,17 +121,17 @@ class ValidatorPrompter:
                 uids, roles, messages, uid_idx, in_parallel, timeout
             )
             uid_idx += len(tasks)
+            if respond_on_first_success:
+                for future in asyncio.as_completed(tasks):
+                    result = await future
+                    results.append(result)
+                    if result["dendrite_response"].is_completion:
+                        for task in tasks:
+                            task.cancel()  # Cancel all other tasks
+                        return results  # Return the successful result
+            else:
+                results += await asyncio.gather(*tasks)
 
-            for future in asyncio.as_completed(tasks):
-                result = await future
-                results.append(result)
-                if (
-                    respond_on_first_success
-                    and result["dendrite_response"].is_completion
-                ):
-                    for task in tasks:
-                        task.cancel()  # Cancel all other tasks
-                    return results  # Return the successful result
         return results
 
     def _create_tasks(self, uids, roles, messages, uid_idx, in_parallel, timeout):
@@ -149,10 +149,8 @@ class ValidatorPrompter:
         logging.info(f"Querying uid {uid}")
         timeout_arg = {"timeout": timeout} if timeout is not None else {}
         axon = self.metagraph_syncer.metagraph.axons[uid]
-
         synapse = Prompting(roles=roles, messages=messages)
-
-        result = self.dendrite.query([axon], synapse, deserialize=False)
+        result = await self.dendrite.forward([axon], synapse, deserialize=False)
         result = result[0]
         if result.dendrite.process_time:
             result.elapsed = result.dendrite.process_time

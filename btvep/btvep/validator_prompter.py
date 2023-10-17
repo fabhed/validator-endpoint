@@ -2,11 +2,31 @@ import asyncio
 import logging
 from typing import List, Optional
 
-from bittensor import Keypair, metagraph, text_prompting, Keypair
+import bittensor as bt
+from bittensor import Keypair, metagraph, Keypair  # prompting,text_prompting
 
 from btvep.btvep_models import Message
 from btvep.constants import DEFAULT_NETUID
 from btvep.metagraph import MetagraphSyncer
+from btvep.prompting import Prompting
+
+# The MIT License (MIT)
+# Copyright © 2023 Yuma Rao
+# Copyright © 2023 Opentensor Foundation
+
+# Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
+# documentation files (the “Software”), to deal in the Software without restriction, including without limitation
+# the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software,
+# and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+
+# The above copyright notice and this permission notice shall be included in all copies or substantial portions of
+# the Software.
+
+# THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO
+# THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+# THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
+# OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+# DEALINGS IN THE SOFTWARE.
 
 
 class MetagraphNotSyncedException(Exception):
@@ -45,6 +65,7 @@ class ValidatorPrompter:
         self.metagraph_syncer = MetagraphSyncer(DEFAULT_NETUID)
         self.metagraph_syncer.start_sync_thread()
         self.hotkey = Keypair.create_from_mnemonic(hotkey_mnemonic)
+        self.dendrite = bt.dendrite(wallet=self.hotkey)
 
     def __init__(self, *args, **kwargs):
         pass
@@ -76,12 +97,6 @@ class ValidatorPrompter:
             uids, roles, messages, in_parallel, timeout, respond_on_first_success
         )
 
-    def _get_dendrite(self, uid):
-        if self.metagraph_syncer.metagraph is None:
-            raise MetagraphNotSyncedException()
-        axon = self.metagraph_syncer.metagraph.axons[uid]
-        return text_prompting(keypair=self.hotkey, axon=axon)
-
     def _validate_metagraph(self):
         if self.metagraph_syncer.metagraph is None:
             raise MetagraphNotSyncedException()
@@ -106,14 +121,17 @@ class ValidatorPrompter:
                 uids, roles, messages, uid_idx, in_parallel, timeout
             )
             uid_idx += len(tasks)
+            if respond_on_first_success:
+                for future in asyncio.as_completed(tasks):
+                    result = await future
+                    results.append(result)
+                    if result["dendrite_response"].is_completion:
+                        for task in tasks:
+                            task.cancel()  # Cancel all other tasks
+                        return results  # Return the successful result
+            else:
+                results += await asyncio.gather(*tasks)
 
-            for future in asyncio.as_completed(tasks):
-                result = await future
-                results.append(result)
-                if respond_on_first_success and result["dendrite_response"].is_success:
-                    for task in tasks:
-                        task.cancel()  # Cancel all other tasks
-                    return results  # Return the successful result
         return results
 
     def _create_tasks(self, uids, roles, messages, uid_idx, in_parallel, timeout):
@@ -121,19 +139,33 @@ class ValidatorPrompter:
         for _ in range(min(in_parallel, len(uids) - uid_idx)):
             uid = uids[uid_idx]
             uid_idx += 1
-            dendrite = self._get_dendrite(uid)
-            task = asyncio.create_task(
-                self._query_uid(dendrite, roles, messages, uid, timeout)
-            )
+            task = asyncio.create_task(self._query_uid(roles, messages, uid, timeout))
             tasks.append(task)
         return tasks
 
-    async def _query_uid(self, dendrite, roles, messages, uid, timeout=None):
+    async def _query_uid(self, roles, messages, uid, timeout=None):
         # Avoid overwriting the default timeout of bittensor if timeout is None
+
         logging.info(f"Querying uid {uid}")
         timeout_arg = {"timeout": timeout} if timeout is not None else {}
-        result = await dendrite.async_forward(
-            roles=roles, messages=messages, **timeout_arg
-        )
+        axon = self.metagraph_syncer.metagraph.axons[uid]
+        synapse = Prompting(roles=roles, messages=messages)
+        result = await self.dendrite.forward([axon], synapse, deserialize=False)
+        result = result[0]
+        if result.dendrite.process_time:
+            result.elapsed = result.dendrite.process_time
+        else:
+            result.elapsed = result.timeout
+        result.dest_hotkey = axon.hotkey
+        result.return_code = result.dendrite.status_code
+        result.return_message = result.dendrite.status_message
+        if result.completion:
+            result.is_completion = True
+        else:
+            # Case empty dentrite response
+            if result.dendrite.status_code == 200:
+                result.return_message = "Empty response"
+
         response = {"uid": uid, "dendrite_response": result}
+
         return response

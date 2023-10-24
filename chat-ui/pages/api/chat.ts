@@ -39,7 +39,6 @@ const handler = async (req: Request): Promise<Response> => {
       plugins,
       key,
       url,
-      uid,
       others
     );
 

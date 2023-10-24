@@ -5,7 +5,6 @@ export async function choose_plugin(
   plugins: string[],
   api: string,
   url: string,
-  uids: number [],
   others: any
 ) {
   if (!plugins || plugins.length == 0) {
@@ -40,7 +39,7 @@ Parameters: ${plugin.id == "chatpdf" ? JSON.stringify({"sourceId":{"type":"strin
         content: message,
       },
     ],
-    uids,
+    top_n: 20,
     return_all: true,
   };
 

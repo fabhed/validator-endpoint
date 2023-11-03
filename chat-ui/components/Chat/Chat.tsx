@@ -144,7 +144,7 @@ export const Chat = memo(() => {
         abortControllerRef.current = controller;
 
         try {
-          const response = await fetch('api/chat', {
+          const response = await fetch(endpoint, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
@@ -175,7 +175,7 @@ export const Chat = memo(() => {
             };
           }
           let lastMessage;
-          for (let i = 1; i < json.choices.length; i++) {
+          for (let i = 0; i < json.choices.length; i++) {
             if (json.choices[i].message.content != "") {
               lastMessage = json.choices[i].message;
               break;

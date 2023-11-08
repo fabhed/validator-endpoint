@@ -128,6 +128,12 @@ async def authenticate_user(token: str = Depends(oauth2_scheme)):
         )
 
 
+async def authenticate_admin(user=Depends(authenticate_user)):
+    if not user.is_admin == 1:
+        raise HTTPException(status_code=403, detail="User is not an admin")
+    return user
+
+
 async def authenticate_api_key(
     request: Request, token: str = Depends(token_auth_scheme)
 ) -> ApiKey:

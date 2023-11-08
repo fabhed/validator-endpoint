@@ -11,6 +11,7 @@ from . import key
 from . import config
 from . import ratelimit
 from . import logs
+from . import user
 
 app = typer.Typer(help="Bitensor Validator Endpoint CLI", rich_markup_mode="rich")
 
@@ -66,3 +67,4 @@ app.add_typer(key.app, name="key")
 app.add_typer(config.app, name="config")
 app.add_typer(ratelimit.app, name="ratelimit")
 app.add_typer(logs.app, name="logs")
+app.add_typer(user.app, name="user")

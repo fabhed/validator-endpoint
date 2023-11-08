@@ -1,4 +1,4 @@
-from typing import List, Literal
+from typing import List, Literal, Optional
 from pydantic import BaseModel, Field
 
 
@@ -18,9 +18,9 @@ class ChatResponseChoice(BaseModel):
 
     index: int
     uid: int
-    responder_hotkey: str
+    responder_hotkey: Optional[str]
     message: Message
-    response_ms: int
+    response_ms: Optional[int]
 
 
 class FailedMinerResponse(BaseModel):
@@ -28,9 +28,9 @@ class FailedMinerResponse(BaseModel):
 
     index: int
     uid: int
-    responder_hotkey: str
-    error: str
-    response_ms: int
+    responder_hotkey: Optional[str]
+    error: Optional[str]
+    response_ms: Optional[int]
 
 
 class ChatResponse(BaseModel):

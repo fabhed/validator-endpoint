@@ -18,6 +18,10 @@ import { EditableField } from "../components/EditableField";
 import { QuestionCircleOutlined } from "@ant-design/icons";
 import { RateLimitForm } from "../components/RateLimitForm";
 
+import { useAuth0 } from '@auth0/auth0-react';
+import LoginButton from '../components/LoginButton';
+import LogoutButton from '../components/LogoutButton';
+
 const { Title } = Typography;
 
 const apiUrl = "/admin/config";
@@ -38,12 +42,14 @@ interface Configuration {
   openai_api_key?: string;
 }
 
+
+
 export default function Configuration() {
   const { data: configData, error: configError } = useSWR<Configuration>(
     apiUrl,
     fetcher
   );
-
+  const { isAuthenticated } = useAuth0();
   const [configValues, setConfigValues] = useState<Configuration>({});
 
   useEffect(() => {
@@ -89,8 +95,8 @@ export default function Configuration() {
                 name="hotkey_mnemonic"
                 onUpdate={(v) => handleUpdateConfigValue("hotkey_mnemonic", v)}
                 displayValueAsInput
-                onChange={() => {}}
-                onCancel={() => {}}
+                onChange={() => { }}
+                onCancel={() => { }}
               />
             </Form.Item>
             {/* <Form.Item label="Hotkey Public Key">
@@ -124,8 +130,8 @@ export default function Configuration() {
                 name="redis_url"
                 onUpdate={(v) => handleUpdateConfigValue("redis_url", v)}
                 displayValueAsInput
-                onChange={() => {}}
-                onCancel={() => {}}
+                onChange={() => { }}
+                onCancel={() => { }}
               />
             </Form.Item>
             <Title level={3} style={{ marginTop: "3rem" }}>
@@ -161,8 +167,8 @@ export default function Configuration() {
                   name="openai_api_key"
                   onUpdate={(v) => handleUpdateConfigValue("openai_api_key", v)}
                   displayValueAsInput
-                  onChange={() => {}}
-                  onCancel={() => {}}
+                  onChange={() => { }}
+                  onCancel={() => { }}
                 />
               </Form.Item>
             )}
@@ -188,6 +194,13 @@ export default function Configuration() {
             ></RateLimitForm>
           </Form>
         </Space>
+        <Title level={3} style={{ marginTop: "3rem" }}>
+          Auth0 &nbsp;&nbsp;
+          <Space>
+            {!isAuthenticated ? <LoginButton /> : <LogoutButton />}
+          </Space>
+        </Title>
+
       </section>
     </>
   );

@@ -11,7 +11,6 @@ from btvep.btvep_models import (
 )
 
 from btvep.validator_prompter import MetagraphNotSyncedException, ValidatorPrompter
-from bittensor.utils.codes import code_to_string
 import uuid
 from btvep.db.request import Request
 
@@ -27,10 +26,16 @@ async def query_network(
     messages: List[Message],
     uids: List[int],
     top_n: int,
+    in_parallel: int,
+    respond_on_first_success: bool,
 ) -> dict:
     try:
         return await ValidatorPrompter().query_network(
-            messages=messages, uids=uids, top_n=top_n
+            messages=messages,
+            uids=uids,
+            top_n=top_n,
+            in_parallel=in_parallel,
+            respond_on_first_success=respond_on_first_success,
         )
     except MetagraphNotSyncedException as e:
         raise HTTPException(
@@ -51,13 +56,6 @@ def process_responses(
         dendrite_res = p_response["dendrite_response"]
         uid = p_response["uid"]
 
-        return_code = (
-            dendrite_res.return_code.value
-            if isinstance(type(dendrite_res.return_code), type(Enum))
-            else dendrite_res.return_code
-        )
-        return_code_str = code_to_string(return_code)
-
         Request.create(
             is_api_success=True,
             api_request_id=str(uuid.uuid4()),
@@ -67,17 +65,17 @@ def process_responses(
             ],  # Assuming API key is also passed in the same format.
             response=dendrite_res.completion,
             responder_hotkey=dendrite_res.dest_hotkey,
-            is_success=dendrite_res.is_success,
+            is_success=dendrite_res.is_completion,
             return_message=dendrite_res.return_message,
             elapsed_time=dendrite_res.elapsed,
             src_version=dendrite_res.src_version,
             dest_version=dendrite_res.dest_version,
-            return_code=return_code_str,
+            return_code=dendrite_res.return_message,
         )
 
         response_ms = int(dendrite_res.elapsed * 1000)
 
-        if dendrite_res.is_success:
+        if dendrite_res.is_completion:
             choices.append(
                 {
                     "index": success_index,

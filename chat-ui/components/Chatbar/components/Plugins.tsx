@@ -10,6 +10,7 @@ import { SidebarButton } from '@/components/Sidebar/SidebarButton';
 import ChatbarContext from '../Chatbar.context';
 import Checkbox from '@/components/Checkbox';
 import useApi from '@/hooks/useApi';
+import axios from "axios"
 
 interface Plugin {
   id: string;
@@ -31,6 +32,7 @@ export const Plugins = () => {
 
   const {
     state: { selectedPlugins },
+    dispatch: homeDispatch,
   } = useContext(HomeContext);
 
   const { handlePluginsChange } =
@@ -46,6 +48,28 @@ export const Plugins = () => {
       setIsChanging(false);
     }
   };
+
+  const onSubmit = async (e: any) => {
+    const formData = new FormData();
+    formData.append("file", e.target.files[0]);
+    
+    axios
+      .post("https://api.chatpdf.com/v1/sources/add-file", formData, {
+        headers: {
+          "x-api-key": `${process.env.NEXT_PUBLIC_CHATPDF_API_KEY}`,
+        },
+      })
+      .then((response) => {
+        console.log("Source ID:", response.data.sourceId);
+        homeDispatch({ field: 'publicPDFLink', value: response.data.sourceId});
+        alert("Success!");
+      })
+      .catch((error) => {
+        console.log("Error:", error.message);
+        console.log("Response:", error.response.data);
+        alert("Feild! Please try again.");
+      });
+  }
 
   useEffect(() => {
     const handleMouseDown = (e: MouseEvent) => {
@@ -96,6 +120,7 @@ export const Plugins = () => {
                 <div className='flex space-x-2'>
                   <input
                     className="w-full rounded-lg border border-neutral-500 px-4 py-2 text-neutral-900 shadow focus:outline-none dark:border-neutral-100 dark:border-opacity-50 dark:bg-[#40414F] dark:text-neutral-100"
+                    placeholder='Plugin Search'
                     value={query}
                     onChange={(e) => setQuery(e.target.value)}
                   />
@@ -118,7 +143,7 @@ export const Plugins = () => {
                   {
                     filteredPlugins.map((plugin:Plugin, index: number) => (
                       <div className="mt-4 pt-2 px-2" key={index}>
-                        <div className="text-xl font-bold">
+                        <div className="text-xl font-bold flex gap-2">
                           <Checkbox 
                             label={plugin.name}
                             checked={selectedPlugins.includes(plugin.id)}
@@ -129,7 +154,15 @@ export const Plugins = () => {
                                 handlePluginsChange([...selectedPlugins, plugin.id]);
                               }
                             }}
-                          ></Checkbox>
+                            />
+                            {
+                              plugin.id === "chatpdf" && 
+                                <input
+                                  className="text-sm w-full px-3 py-1 mr-3 text-neutral-900 shadow focus:outline-none dark:border-neutral-100 dark:border-opacity-50 dark:text-neutral-100"
+                                  type='file'
+                                  onChange={(e) => onSubmit(e)}
+                                />
+                            }
                         </div>
                         <div className="mt-2 italic">
                           {plugin.description}

@@ -7,3 +7,4 @@ class UserInDB(BaseModel):
     enabled: bool
     created_at: int
     updated_at: int
+    is_admin: int

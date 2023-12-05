@@ -11,6 +11,7 @@ class User(BaseModel):
     id = TextField(primary_key=True)
     # Number of requests to the bittensor network
     request_count = IntegerField(default=0)
+    is_admin = IntegerField(default=0)
     # Number of requests to the validator-endpoint api (one api request can make multiple bittensor requests)
     api_request_count = IntegerField(default=0)
     enabled = BooleanField(default=True)
@@ -22,10 +23,10 @@ class User(BaseModel):
 
     @staticmethod
     def tabulate(users):
-        """Print a list of API keys in a table."""
+        """Print a list of Users in a table."""
         return tabulate(
             users,
-            headers="users",
+            headers="keys",
         )
 
 

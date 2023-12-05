@@ -21,26 +21,28 @@ export class ValidatorEndpointError extends Error {
 
 const handler = async (req: Request): Promise<Response> => {
   try {
-    const { messages, key, prompt, uid, plugins } = (await req.json()) as ChatBody;
+    const { messages, key, prompt, uid, plugins, others } = (await req.json());
     const url = NEXT_PUBLIC_VALIDATOR_ENDPOINT_BASE_URL + '/conversation';
-    const res_uids = await fetch(`https://test.neuralinternet.ai/top_miner_uids?n=20`, {
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${key}`,
-      },
-      method: 'GET',
-    });
-    const top_miner_uids = await res_uids.json();
+    // const res_uids = await fetch(`https://test.neuralinternet.ai/top_miner_uids?n=20`, {
+    //   headers: {
+    //     'Content-Type': 'application/json',
+    //     Authorization: `Bearer ${key}`,
+    //   },
+    //   method: 'GET',
+    // });
+    // const top_miner_uids = await res_uids.json();
 
     console.log("plugins", plugins);
+    console.log("uid", uid);
     const plugin_assistant = await choose_plugin(
       messages[messages.length - 1].content,
       plugins,
       key,
       url,
-      top_miner_uids
+      others
     );
 
+    console.log("plugin_assistant", plugin_assistant);
     if (plugin_assistant) {
       const lastMessage = messages.pop();
       messages.push({
@@ -57,16 +59,17 @@ const handler = async (req: Request): Promise<Response> => {
       messagesToSend = [message, ...messagesToSend];
     }
 
-    // const strategy: {
-    //   uids?: number[];
-    //   top_n?: number;
-    // } = {};
-    // if (uid !== undefined) {
-    //   strategy.uids = [uid];
-    // } else {
-    //   strategy.top_n = 1;
-    // }
-    const strategy = {uids: [top_miner_uids[0]]};
+    const strategy: {
+      uids?: number[];
+      top_n?: number;
+      in_parallel?: number;
+    } = {};
+    if (uid !== undefined) {
+      strategy.uids = [uid];
+    } else {
+      strategy.top_n = 20;
+    }
+    // const strategy = {uids: top_miner_uids};
     const body = {
       messages: [
         {

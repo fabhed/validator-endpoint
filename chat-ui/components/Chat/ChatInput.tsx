@@ -305,6 +305,30 @@ export const ChatInput = ({
                 size={18}
               />
             </button>
+            
+            {showPluginSelect && (
+            <div className="absolute left-0 bottom-14 rounded bg-white dark:bg-[#343541]">
+              <PluginSelect
+                plugin={plugin}
+                onKeyDown={(e: any) => {
+                  if (e.key === 'Escape') {
+                    e.preventDefault();
+                    setShowPluginSelect(false);
+                    textareaRef.current?.focus();
+                  }
+                }}
+                onPluginChange={(plugin: Plugin) => {
+                  setPlugin(plugin);
+                  setShowPluginSelect(false);
+
+                  if (textareaRef && textareaRef.current) {
+                    textareaRef.current.focus();
+                  }
+                }}
+              />
+            </div>
+          )}
+
             <textarea
               ref={textareaRef}
               className="m-0 w-full resize-none border-0 bg-transparent p-0 py-2 pr-8 pl-9 text-black dark:bg-transparent dark:text-white md:py-3"

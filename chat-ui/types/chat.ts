@@ -10,6 +10,8 @@ export interface ChatBody {
   key: string;
   prompt: string;
   uid: number | undefined;
+  api: string;
+  plugins: string[];
 }
 
 export interface Conversation {

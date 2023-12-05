@@ -12,6 +12,7 @@ import toast from 'react-hot-toast';
 
 import { useTranslation } from 'next-i18next';
 
+import { getEndpoint } from '@/utils/app/api';
 import { title } from '@/utils/app/const';
 import {
   saveConversation,
@@ -38,7 +39,20 @@ export const Chat = memo(() => {
   const { t } = useTranslation('chat');
 
   const {
-    state: { selectedConversation, conversations, loading },
+    state: {
+      selectedConversation,
+      conversations,
+      apiKey,
+      pluginKeys,
+      serverSideApiKeyIsSet,
+      messageIsStreaming,
+      modelError,
+      loading,
+      prompts,
+      api,
+      selectedPlugins,
+      publicPDFLink
+    },
     handleUpdateConversation,
     dispatch: homeDispatch,
   } = useContext(HomeContext);
@@ -96,21 +110,48 @@ export const Chat = memo(() => {
           key: access_token,
           prompt: updatedConversation.prompt,
           uid,
+          plugins: selectedPlugins,
+          api,
         };
         console.log('Messages in request', chatBody.messages);
+
+        const endpoint = getEndpoint(plugin);
+        let body;
+        if (!plugin) {
+          body = JSON.stringify(chatBody);
+          if (selectedPlugins.includes("chatpdf")) {
+            body = JSON.stringify({
+              ...chatBody,
+              others: {
+                publicPDFLink
+              }
+            });
+          }
+          else body = JSON.stringify(chatBody);
+        } else {
+          body = JSON.stringify({
+            ...chatBody,
+            googleAPIKey: pluginKeys
+              .find((key) => key.pluginId === 'google-search')
+              ?.requiredKeys.find((key) => key.key === 'GOOGLE_API_KEY')?.value,
+            googleCSEId: pluginKeys
+              .find((key) => key.pluginId === 'google-search')
+              ?.requiredKeys.find((key) => key.key === 'GOOGLE_CSE_ID')?.value,
+          });
+        }
 
         const controller = new AbortController();
         abortControllerRef.current = controller;
 
         try {
-          const response = await fetch('api/chat', {
+          const response = await fetch(endpoint, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
             },
             signal: controller.signal,
 
-            body: JSON.stringify(chatBody),
+            body,
           });
 
           if (!response.ok) {
@@ -123,7 +164,6 @@ export const Chat = memo(() => {
           }
           // Response OK!
           const json = await response.json();
-          console.log('Response', json);
           homeDispatch({ field: 'loading', value: false });
           if (updatedConversation.messages.length === 1) {
             const { content } = message;
@@ -134,9 +174,16 @@ export const Chat = memo(() => {
               name: customName,
             };
           }
+          let lastMessage;
+          for (let i = 0; i < json.choices.length; i++) {
+            if (json.choices[i].message.content != "") {
+              lastMessage = json.choices[i].message;
+              break;
+            }
+          }
           const updatedMessages: Message[] = [
             ...updatedConversation.messages,
-            json.choices[0].message,
+            lastMessage,
           ];
           updatedConversation = {
             ...updatedConversation,
@@ -172,7 +219,14 @@ export const Chat = memo(() => {
         }
       }
     },
-    [selectedConversation, homeDispatch, getAccessTokenSilently, conversations],
+    [
+      apiKey,
+      conversations,
+      pluginKeys,
+      selectedConversation,
+      api,
+      selectedPlugins,
+    ],
   );
 
   const scrollToBottom = useCallback(() => {
